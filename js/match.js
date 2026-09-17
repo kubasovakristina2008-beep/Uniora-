@@ -62,13 +62,27 @@
 
   function buildReasonFacts(uni, profile, signals) {
     var facts = [];
-    var majorLabel = (data.MAJORS.filter(function (m) { return m.id === profile.major; })[0] || {}).label;
     var countryLabel = (data.COUNTRIES.filter(function (c) { return c.id === uni.country; })[0] || {}).label;
+    var majorMatches = !!profile.major && uni.majors.indexOf(profile.major) !== -1;
+    var countryMatches = profile.showAllCountries || (profile.countries && profile.countries.indexOf(uni.country) !== -1);
 
-    facts.push({
-      tone: "neutral",
-      text: "Специальность «" + majorLabel + "» и страна " + countryLabel + " совпадают с вашим выбором в анкете."
-    });
+    if (majorMatches && countryMatches) {
+      var majorLabel = (data.MAJORS.filter(function (m) { return m.id === profile.major; })[0] || {}).label;
+      facts.push({
+        tone: "neutral",
+        text: "Специальность «" + majorLabel + "» и страна " + countryLabel + " совпадают с вашим выбором в анкете."
+      });
+    } else {
+      var uniMajorLabels = uni.majors.map(function (id) {
+        return (data.MAJORS.filter(function (m) { return m.id === id; })[0] || {}).label;
+      }).join(", ");
+      facts.push({ tone: "neutral", text: "Вуз предлагает: " + uniMajorLabels + " · " + countryLabel + "." });
+      if (profile.major && !majorMatches) {
+        facts.push({ tone: "gap", text: "Это не совпадает с выбранной в анкете специальностью — оценка показана справочно." });
+      } else if (!countryMatches) {
+        facts.push({ tone: "gap", text: "Эта страна сейчас не выбрана в анкете — оценка показана справочно." });
+      }
+    }
 
     signals.numericFacts.forEach(function (f) {
       var tone = f.margin >= 0 ? "positive" : "negative";
@@ -96,6 +110,21 @@
     return facts;
   }
 
+  // Оценивает один вуз против профиля — независимо от текущих фильтров
+  // специальности/страны. Не мутирует profile. Используется и подбором,
+  // и избранным, и симулятором «что если».
+  function evaluateUniversity(uni, profile) {
+    var signals = computeExamSignals(profile, uni);
+    var category = categorize(uni.acceptanceRate, signals.academicMargin);
+    return {
+      university: uni,
+      category: category,
+      academicMargin: signals.academicMargin,
+      signals: signals,
+      reasons: buildReasonFacts(uni, profile, signals)
+    };
+  }
+
   function matchUniversities(profile) {
     if (!profile.major) return [];
     var countries = profile.showAllCountries ? null : (profile.countries || []);
@@ -107,17 +136,7 @@
       return countries.indexOf(u.country) !== -1;
     });
 
-    return candidates.map(function (uni) {
-      var signals = computeExamSignals(profile, uni);
-      var category = categorize(uni.acceptanceRate, signals.academicMargin);
-      return {
-        university: uni,
-        category: category,
-        academicMargin: signals.academicMargin,
-        signals: signals,
-        reasons: buildReasonFacts(uni, profile, signals)
-      };
-    });
+    return candidates.map(function (uni) { return evaluateUniversity(uni, profile); });
   }
 
   // --- Сила портфолио: качественная метка, без процентов ---
@@ -279,6 +298,7 @@
   global.Uniora = global.Uniora || {};
   global.Uniora.match = {
     matchUniversities: matchUniversities,
+    evaluateUniversity: evaluateUniversity,
     categorize: categorize,
     portfolioStrength: portfolioStrength,
     examsTakenSummary: examsTakenSummary,

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Рекомендации — Uniora</title>
+<title>Избранное — Uniora</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -16,13 +16,11 @@
 <section class="page-section">
   <div class="container">
     <div class="section-heading">
-      <span class="eyebrow">Рекомендации</span>
-      <h2>Вузы, подобранные под ваш профиль</h2>
-      <p>Категории Match / Reach / Safety — эвристика Uniora на основе ваших данных, не гарантия поступления.</p>
+      <span class="eyebrow">Избранное</span>
+      <h2>Сохранённые вузы</h2>
+      <p>Оценка «почему подходит» пересчитывается по текущему профилю — если вы изменили специальность или страны в анкете, факты обновятся автоматически.</p>
     </div>
-    <div id="filter-bar"></div>
-    <div id="whatif-bar"></div>
-    <div id="recommendations-root"></div>
+    <div id="favorites-root"></div>
   </div>
 </section>
 
@@ -31,9 +29,10 @@
 <script src="js/match.js"></script>
 <script src="js/common.js"></script>
 <script src="js/recommendations.js"></script>
+<script src="js/favorites.js"></script>
 <script>
-  Uniora.common.renderNav("recommendations");
-  Uniora.recommendations.init();
+  Uniora.common.renderNav("favorites");
+  Uniora.favorites.init();
 </script>
 </body>
 </html>

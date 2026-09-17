@@ -156,6 +156,24 @@ section.page-section--tight { padding: var(--space-3) 0; }
 }
 .step-pill--active .step-pill__num { background: var(--aurora-violet); color: #fff; }
 .site-nav--dark .step-pill__num { background: rgba(244, 241, 255, 0.12); }
+.site-nav__fav-link {
+  margin-left: auto;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  border: 1.5px solid rgba(20, 22, 43, 0.1);
+  transition: all 0.15s ease;
+}
+.site-nav__fav-link:hover { border-color: var(--aurora-coral); color: #C9366C; }
+.site-nav__fav-link--active { background: var(--aurora-coral-soft); border-color: var(--aurora-coral); color: #C9366C; }
+.site-nav--dark .site-nav__fav-link { color: var(--lavender-faint); border-color: rgba(244, 241, 255, 0.16); }
+.site-nav--dark .site-nav__fav-link:hover { color: var(--aurora-coral); border-color: var(--aurora-coral); }
 
 /* ---------------- Context bar ---------------- */
 .context-bar {
@@ -328,6 +346,13 @@ section.page-section--tight { padding: var(--space-3) 0; }
   display: flex; align-items: center; justify-content: center;
   font-weight: 700; margin-bottom: var(--space-2);
 }
+.example-routes { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-3); }
+.example-card { display: flex; flex-direction: column; gap: 10px; }
+.example-card__badge { background: rgba(20, 22, 43, 0.06); color: var(--ink-faint); align-self: flex-start; }
+.example-card h3 { font-size: 1.02rem; margin-bottom: 0; }
+.example-card__steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 0.86rem; color: var(--ink-soft); }
+.example-card__steps li { line-height: 1.5; }
+
 .trust-block {
   background: var(--paper-raised);
   border: 1px solid rgba(20, 22, 43, 0.08);
@@ -593,6 +618,12 @@ input[type="range"]:disabled { opacity: 0.4; }
 }
 .fav-btn--active { border-color: var(--aurora-coral); background: var(--aurora-coral-soft); }
 
+.whatif-card { margin-bottom: var(--space-3); }
+.whatif-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+.whatif-value { font-family: var(--font-head); font-weight: 700; font-size: 1.05rem; min-width: 110px; text-align: center; }
+.whatif-result ul { font-size: 0.86rem; color: var(--ink-soft); }
+.whatif-result li { margin-bottom: 4px; }
+
 .category-note {
   font-size: 0.78rem;
   color: var(--ink-faint);
@@ -660,6 +691,13 @@ input[type="range"]:disabled { opacity: 0.4; }
 .priority-row:last-child { border-bottom: none; }
 .priority-row__label { font-weight: 600; font-size: 0.88rem; }
 .priority-row__note { font-size: 0.78rem; color: var(--lavender-faint); max-width: 380px; }
+
+/* Светлый вариант панели приоритетов — используется на country-guide.html */
+.priority-panel-light .priority-tab { background: rgba(20, 22, 43, 0.05); color: var(--ink-faint); }
+.priority-panel-light .priority-tab--active { background: var(--aurora-violet-soft); color: var(--aurora-violet); border-color: var(--aurora-violet); }
+.priority-panel-light .priority-row { border-bottom-color: rgba(20, 22, 43, 0.08); }
+.priority-panel-light .priority-row__label { color: var(--ink); }
+.priority-panel-light .priority-row__note { color: var(--ink-faint); }
 
 .constellation-wrap {
   position: relative;
@@ -748,6 +786,40 @@ input[type="range"]:disabled { opacity: 0.4; }
 
 .legend-row { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-2); font-size: 0.78rem; color: var(--lavender-faint); }
 .legend-row__item { display: flex; align-items: center; gap: 6px; }
+
+/* Переключатель вида Roadmap: Созвездие / Список */
+.view-toggle { display: flex; gap: 6px; margin-bottom: var(--space-2); }
+.view-toggle__tab {
+  padding: 8px 16px; border-radius: var(--radius-pill);
+  background: rgba(244,241,255,0.05); color: var(--lavender-faint);
+  font-size: 0.84rem; font-weight: 500; border: 1px solid rgba(244,241,255,0.12);
+}
+.view-toggle__tab--active { background: rgba(108,92,231,0.3); color: var(--lavender); border-color: var(--aurora-violet); }
+
+/* Вид «Список» */
+.checklist { display: flex; flex-direction: column; gap: 8px; margin-bottom: var(--space-3); }
+.checklist-row {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: rgba(244,241,255,0.05); border: 1px solid rgba(244,241,255,0.1);
+  border-radius: var(--radius-card); padding: var(--space-2);
+}
+.checklist-row--next { border-color: var(--aurora-violet); background: rgba(108,92,231,0.12); }
+.checklist-row--done { opacity: 0.6; }
+.checklist-check {
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+  border: 1.5px solid rgba(244,241,255,0.35); background: transparent; color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 0.8rem; margin-top: 2px;
+}
+.checklist-check.is-checked { background: var(--aurora-gradient); border-color: transparent; }
+.checklist-body { flex: 1; min-width: 0; }
+.checklist-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: var(--lavender); font-weight: 600; font-size: 0.92rem; }
+.checklist-desc { color: var(--lavender-faint); font-size: 0.82rem; margin-top: 4px; }
+.checklist-deadline { color: var(--aurora-teal); font-size: 0.78rem; margin-top: 4px; }
+
+/* Чек-лист документов */
+.doc-checklist { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.doc-checklist__row { display: flex; align-items: center; gap: 10px; color: var(--lavender); font-size: 0.88rem; cursor: pointer; }
+.doc-checklist__row input { width: 18px; height: 18px; accent-color: var(--aurora-violet); }
 .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
 
 .event-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-2); }
@@ -802,4 +874,23 @@ input[type="range"]:disabled { opacity: 0.4; }
 @media (max-width: 480px) {
   .hero__title { font-size: 1.8rem; }
   .option-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ---------------- Печать плана Roadmap ---------------- */
+.print-plan { display: none; }
+.print-plan__list { margin: 12px 0 20px; }
+.print-plan__row { padding: 6px 0; border-bottom: 1px solid #ddd; font-size: 13px; }
+.print-plan__desc { color: #555; font-size: 12px; margin: 2px 0 0 20px; }
+
+@media print {
+  body * { visibility: hidden; }
+  #print-plan, #print-plan * { visibility: visible; }
+  #print-plan {
+    display: block !important;
+    position: absolute; left: 0; top: 0; width: 100%;
+    background: #fff; color: #111; padding: 24px;
+  }
+  #print-plan h1 { font-family: var(--font-head); font-size: 22px; margin-bottom: 4px; }
+  #print-plan h2 { font-family: var(--font-head); font-size: 16px; margin-top: 20px; }
+  #print-plan p { color: #333; }
 }

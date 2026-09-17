@@ -13,6 +13,16 @@
   var activePriorityCountry = null;
   var starRefs = {}; // id -> { button, mark, star }
   var stopStarfield = null;
+  var viewMode = "constellation"; // "constellation" | "list" — не персистится между сессиями
+
+  var DOCUMENT_ITEMS = [
+    { key: "motivationLetter", label: "Мотивационное письмо" },
+    { key: "essay", label: "Эссе" },
+    { key: "recommendationLetters", label: "Рекомендательные письма" },
+    { key: "transcript", label: "Переведённый и заверенный транскрипт" },
+    { key: "languageCertificate", label: "Языковой сертификат (IELTS/TOEFL и т.п.)" },
+    { key: "portfolio", label: "Портфолио работ", onlyMajor: "arts" }
+  ];
 
   // ---------------- Синхронизация звёзд-пробелов ----------------
   function syncGapStars(profile) {
@@ -165,7 +175,15 @@
     if (!star) return;
     var newStatus = star.status === "done" ? "todo" : "done";
     S.setStarStatus(id, newStatus);
-    refreshStarVisuals();
+    if (viewMode === "list") buildListView(qs("#constellation-mount"));
+    else refreshStarVisuals();
+  }
+
+  function rebuildMount() {
+    var mount = qs("#constellation-mount");
+    if (!mount) return;
+    if (viewMode === "list") buildListView(mount);
+    else buildConstellation(mount);
   }
 
   function refreshStarVisuals() {
@@ -248,6 +266,97 @@
     updateNextActionCard(ordered, nextId);
   }
 
+  // ---------------- Вид «Список» ----------------
+  function deadlineTime(star) {
+    if (!star.deadline) return Infinity;
+    var t = Date.parse(star.deadline);
+    return isNaN(t) ? Infinity : t;
+  }
+
+  function orderForList(list) {
+    var weightRank = { high: 0, medium: 1, low: 2 };
+    return list.slice().sort(function (a, b) {
+      if ((a.status === "done") !== (b.status === "done")) return a.status === "done" ? 1 : -1;
+      var wa = weightRank[a.weight] !== undefined ? weightRank[a.weight] : 1.5;
+      var wb = weightRank[b.weight] !== undefined ? weightRank[b.weight] : 1.5;
+      if (wa !== wb) return wa - wb;
+      return deadlineTime(a) - deadlineTime(b);
+    });
+  }
+
+  function buildListView(container) {
+    container.innerHTML = "";
+    var list = S.getRoadmap();
+    var ordered = orderStars(list); // порядок пути — источник истины для "ближайшего действия"
+    var nextId = findNextStarId(ordered);
+
+    if (!list.length) {
+      container.appendChild(el("p", { class: "muted", style: "color:var(--lavender-faint);" }, [
+        "Список пуст. Явных пробелов пока не видно — добавьте своё мероприятие или пункт ниже."
+      ]));
+      updateNextActionCard([], null);
+      return;
+    }
+
+    var sorted = orderForList(list);
+    var checklist = el("div", { class: "checklist" });
+    sorted.forEach(function (star) {
+      var isNext = star.id === nextId;
+      var isDone = star.status === "done";
+      var check = el("button", {
+        type: "button",
+        class: "checklist-check" + (isDone ? " is-checked" : ""),
+        title: isDone ? "Вернуть в работу" : "Отметить выполненным"
+      }, [isDone ? "✓" : ""]);
+      check.addEventListener("click", function () { toggleStar(star.id); });
+
+      var titleRow = el("div", { class: "checklist-title" }, [
+        starIcon(star) + " " + star.title,
+        star.weight ? el("span", { class: "badge badge--weight-" + star.weight }, [WEIGHT_LABEL[star.weight]]) : null
+      ]);
+
+      var sourceEvent = star.sourceId ? D.EVENTS.filter(function (e) { return e.id === star.sourceId; })[0] : null;
+
+      checklist.appendChild(
+        el("div", { class: "checklist-row" + (isDone ? " checklist-row--done" : "") + (isNext ? " checklist-row--next" : "") }, [
+          check,
+          el("div", { class: "checklist-body" }, [
+            titleRow,
+            star.description ? el("div", { class: "checklist-desc" }, [star.description]) : null,
+            star.deadline ? el("div", { class: "checklist-deadline" }, ["Срок: " + star.deadline]) : null
+          ]),
+          sourceEvent ? el("a", { class: "btn btn--ghost btn--sm", href: sourceEvent.website, target: "_blank", rel: "noopener" }, ["Источник"]) : null
+        ])
+      );
+    });
+    container.appendChild(checklist);
+    updateNextActionCard(ordered, nextId);
+  }
+
+  function renderViewToggle(container) {
+    var wrap = el("div", { class: "view-toggle" });
+    var tabs = [
+      { id: "constellation", label: "✨ Созвездие" },
+      { id: "list", label: "📋 Список" }
+    ];
+    var buttons = [];
+    tabs.forEach(function (t) {
+      var btn = el("button", {
+        type: "button",
+        class: "view-toggle__tab" + (viewMode === t.id ? " view-toggle__tab--active" : "")
+      }, [t.label]);
+      btn.addEventListener("click", function () {
+        if (viewMode === t.id) return;
+        viewMode = t.id;
+        buttons.forEach(function (b, i) { b.classList.toggle("view-toggle__tab--active", tabs[i].id === viewMode); });
+        rebuildMount();
+      });
+      buttons.push(btn);
+      wrap.appendChild(btn);
+    });
+    container.appendChild(wrap);
+  }
+
   // ---------------- Легенда ----------------
   function renderLegend(container) {
     container.appendChild(
@@ -277,7 +386,7 @@
         status: "todo", deadline: deadlineInput.value.trim() || null
       });
       titleInput.value = ""; deadlineInput.value = "";
-      buildConstellation(qs("#constellation-mount"));
+      rebuildMount();
       C.toast("Пункт добавлен в маршрут");
     });
     row.appendChild(titleInput); row.appendChild(deadlineInput); row.appendChild(addBtn);
@@ -311,7 +420,7 @@
                 id: C.uid("event"), type: "event", title: ev.name, description: "Запланировано: " + ev.whyBoost,
                 status: "todo", deadline: null, sourceId: ev.id
               });
-              buildConstellation(qs("#constellation-mount"));
+              rebuildMount();
               C.toast("Добавлено в маршрут как «Запланировано»");
               btn.disabled = true;
               btn.textContent = "Добавлено ✓";
@@ -324,6 +433,80 @@
       grid.appendChild(card);
     });
     container.appendChild(grid);
+  }
+
+  // ---------------- Чек-лист документов на подачу ----------------
+  function renderDocumentsChecklist(container, profile) {
+    var wrap = el("div", { class: "card card--dark", style: "margin-top:var(--space-3);" }, [
+      el("div", { class: "field-label", style: "color:var(--lavender);" }, ["Чек-лист документов на подачу"]),
+      el("p", { class: "muted", style: "color:var(--lavender-faint);margin-top:-4px;" }, [
+        "Ваш личный список для сбора документов — не требование конкретного вуза, у каждого могут быть свои нюансы."
+      ])
+    ]);
+    var list = el("div", { class: "doc-checklist" });
+    DOCUMENT_ITEMS.forEach(function (item) {
+      if (item.onlyMajor && profile.major !== item.onlyMajor) return;
+      var checked = !!(profile.documents && profile.documents[item.key]);
+      var cb = el("input", { type: "checkbox", checked: checked ? "checked" : null });
+      cb.addEventListener("change", function () {
+        var patch = { documents: {} };
+        patch.documents[item.key] = cb.checked;
+        S.updateProfile(patch);
+      });
+      var row = el("label", { class: "doc-checklist__row" }, [cb, el("span", {}, [item.label])]);
+      list.appendChild(row);
+    });
+    wrap.appendChild(list);
+    container.appendChild(wrap);
+  }
+
+  // ---------------- Скачать план (печать) ----------------
+  function buildPrintPlan(profile) {
+    var mount = qs("#print-plan");
+    if (!mount) return;
+    mount.innerHTML = "";
+    var list = S.getRoadmap();
+    var ordered = orderForList(list);
+    var nextId = findNextStarId(orderStars(list));
+
+    mount.appendChild(el("h1", {}, ["Мой маршрут поступления — Uniora"]));
+    var countriesText = profile.showAllCountries ? "все страны" : (profile.countries || []).map(C.countryLabel).join(", ");
+    mount.appendChild(el("p", {}, ["Специальность: " + C.majorLabel(profile.major) + " · Страны: " + countriesText]));
+    mount.appendChild(el("p", {}, ["Сформировано: " + new Date().toLocaleDateString("ru-RU") + ". Это личный план, не официальный документ и не гарантия поступления."]));
+
+    if (nextId) {
+      var nextStar = list.filter(function (s) { return s.id === nextId; })[0];
+      mount.appendChild(el("h2", {}, ["Следующее действие"]));
+      mount.appendChild(el("p", {}, [starIcon(nextStar) + " " + nextStar.title + (nextStar.description ? " — " + nextStar.description : "")]));
+    }
+
+    mount.appendChild(el("h2", {}, ["Все шаги маршрута"]));
+    var stepsList = el("div", { class: "print-plan__list" });
+    if (!ordered.length) {
+      stepsList.appendChild(el("p", {}, ["Пока нет ни одного шага в маршруте."]));
+    }
+    ordered.forEach(function (star) {
+      stepsList.appendChild(
+        el("div", { class: "print-plan__row" }, [
+          el("span", {}, [star.status === "done" ? "[x] " : "[ ] "]),
+          el("strong", {}, [star.title]),
+          star.deadline ? el("span", {}, [" — срок: " + star.deadline]) : null,
+          star.description ? el("div", { class: "print-plan__desc" }, [star.description]) : null
+        ])
+      );
+    });
+    mount.appendChild(stepsList);
+
+    mount.appendChild(el("h2", {}, ["Чек-лист документов"]));
+    var docsList = el("div", { class: "print-plan__list" });
+    var docs = profile.documents || {};
+    DOCUMENT_ITEMS.forEach(function (item) {
+      if (item.onlyMajor && profile.major !== item.onlyMajor) return;
+      docsList.appendChild(
+        el("div", { class: "print-plan__row" }, [el("span", {}, [docs[item.key] ? "[x] " : "[ ] "]), item.label])
+      );
+    });
+    mount.appendChild(docsList);
   }
 
   function render() {
@@ -344,20 +527,34 @@
 
     syncGapStars(profile);
 
-    root.appendChild(el("h2", { style: "color:var(--lavender);" }, ["Ваш маршрут"]));
-    root.appendChild(el("p", { style: "color:var(--lavender-faint);max-width:600px;" }, [
-      "Каждая звезда — шаг: пробел в портфолио, мероприятие или ваш собственный пункт. Кликните на любую невыполненную звезду, чтобы отметить её сделанной."
-    ]));
+    root.appendChild(
+      el("div", { class: "flex items-center justify-between", style: "flex-wrap:wrap;gap:12px;" }, [
+        el("div", {}, [
+          el("h2", { style: "color:var(--lavender);margin-bottom:6px;" }, ["Ваш маршрут"]),
+          el("p", { style: "color:var(--lavender-faint);max-width:560px;margin-bottom:0;" }, [
+            "Каждая звезда — шаг: пробел в портфолио, мероприятие или ваш собственный пункт. Кликните на любую невыполненную звезду, чтобы отметить её сделанной."
+          ])
+        ]),
+        (function () {
+          var btn = el("button", { type: "button", class: "btn btn--secondary btn--sm" }, ["🖨 Скачать план"]);
+          btn.addEventListener("click", function () { buildPrintPlan(S.getProfile()); window.print(); });
+          return btn;
+        })()
+      ])
+    );
 
     renderPriorityPanel(root, profile);
     renderLegend(root);
+    renderViewToggle(root);
 
     var constellationMount = el("div", { id: "constellation-mount" });
     root.appendChild(constellationMount);
     root.appendChild(el("div", { id: "next-action-mount" }));
-    buildConstellation(constellationMount);
+    if (viewMode === "list") buildListView(constellationMount);
+    else buildConstellation(constellationMount);
 
     renderAddCustomForm(root);
+    renderDocumentsChecklist(root, profile);
     renderEvents(root, profile);
 
     root.appendChild(

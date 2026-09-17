@@ -71,7 +71,8 @@
     return "fact-row";
   }
 
-  function renderUniCard(match) {
+  function renderUniCard(match, onChange, opts) {
+    opts = opts || {};
     var uni = match.university;
     var compareList = S.getCompare();
     var favorites = S.getFavorites();
@@ -107,23 +108,91 @@
             var res = S.toggleCompare(uni.id);
             if (!res.ok && res.reason === "max") { C.toast("Можно сравнить максимум 3 вуза — уберите один, чтобы добавить другой."); return; }
             C.toast(res.list.indexOf(uni.id) !== -1 ? "Добавлено в сравнение" : "Убрано из сравнения");
-            render();
+            onChange();
           });
           return btn;
         })(),
-        (function () {
-          var favBtn = el("button", { type: "button", class: "fav-btn" + (isFav ? " fav-btn--active" : ""), title: "В избранное" }, [isFav ? "♥" : "♡"]);
-          favBtn.addEventListener("click", function () { S.toggleFavorite(uni.id); render(); });
-          return favBtn;
-        })(),
+        opts.favoritesContext
+          ? (function () {
+              var favBtn = el("button", { type: "button", class: "btn btn--sm btn--secondary" }, ["♥ Убрать из избранного"]);
+              favBtn.addEventListener("click", function () { S.toggleFavorite(uni.id); C.toast("Убрано из избранного"); onChange(); });
+              return favBtn;
+            })()
+          : (function () {
+              var favBtn = el("button", { type: "button", class: "fav-btn" + (isFav ? " fav-btn--active" : ""), title: "В избранное" }, [isFav ? "♥" : "♡"]);
+              favBtn.addEventListener("click", function () { S.toggleFavorite(uni.id); onChange(); });
+              return favBtn;
+            })(),
         el("a", { class: "btn btn--ghost", href: uni.website, target: "_blank", rel: "noopener" }, ["Сайт"])
       ])
     ]);
     return card;
   }
 
+  // --- Мини-симулятор «Что если»: считает гипотетический IELTS через
+  // matchUniversities с подменённым значением, не сохраняя его в профиль ---
+  function renderWhatIf() {
+    var mount = qs("#whatif-bar");
+    if (!mount) return;
+    mount.innerHTML = "";
+    var profile = S.getProfile();
+    if (!profile.major || (!profile.showAllCountries && profile.countries.length === 0)) return;
+
+    var baseline = (!profile.exams.ielts.notTaken && typeof profile.exams.ielts.value === "number")
+      ? profile.exams.ielts.value : 6.0;
+    var simValue = baseline;
+
+    var display = el("span", { class: "whatif-value" }, ["IELTS: " + simValue.toFixed(1)]);
+    var resultBox = el("div", { class: "whatif-result" });
+
+    function recompute() {
+      display.textContent = "IELTS: " + simValue.toFixed(1);
+      var clonedProfile = JSON.parse(JSON.stringify(profile));
+      clonedProfile.exams.ielts = { value: simValue, notTaken: false };
+      var before = M.matchUniversities(profile);
+      var after = M.matchUniversities(clonedProfile);
+      var beforeMap = {};
+      before.forEach(function (m) { beforeMap[m.university.id] = m.category; });
+      var changed = [];
+      after.forEach(function (m) {
+        var prevCat = beforeMap[m.university.id];
+        if (prevCat && prevCat !== m.category) changed.push({ name: m.university.name, from: prevCat, to: m.category });
+      });
+
+      resultBox.innerHTML = "";
+      var delta = Math.round((simValue - baseline) * 10) / 10;
+      var deltaText = delta === 0 ? "текущий балл" : (delta > 0 ? "+" + delta.toFixed(1) : String(delta.toFixed(1))) + " к текущему баллу";
+      if (!changed.length) {
+        resultBox.appendChild(el("p", { class: "muted", style: "margin:8px 0 0;" }, ["При " + deltaText + " категории вузов не меняются."]));
+        return;
+      }
+      var labelMap = { match: "Match", reach: "Reach", safety: "Safety" };
+      resultBox.appendChild(el("p", { style: "margin:8px 0 4px;font-weight:600;" }, ["Если IELTS будет " + simValue.toFixed(1) + " (" + deltaText + "):"]));
+      var list = el("ul", { style: "margin:0;padding-left:18px;" });
+      changed.forEach(function (c) {
+        list.appendChild(el("li", {}, [c.name + ": " + labelMap[c.from] + " → " + labelMap[c.to]]));
+      });
+      resultBox.appendChild(list);
+    }
+
+    var minus = el("button", { type: "button", class: "btn btn--secondary btn--sm" }, ["−0.5"]);
+    var plus = el("button", { type: "button", class: "btn btn--secondary btn--sm" }, ["+0.5"]);
+    minus.addEventListener("click", function () { simValue = Math.max(0, Math.round((simValue - 0.5) * 10) / 10); recompute(); });
+    plus.addEventListener("click", function () { simValue = Math.min(9, Math.round((simValue + 0.5) * 10) / 10); recompute(); });
+
+    var card = el("div", { class: "card whatif-card" }, [
+      el("div", { class: "field-label" }, ["Мини-симулятор «Что если»"]),
+      el("p", { class: "muted", style: "margin-top:-6px;" }, ["Не сохраняет значение в профиль — только показывает, как изменились бы категории вузов."]),
+      el("div", { class: "whatif-row" }, [minus, display, plus]),
+      resultBox
+    ]);
+    mount.appendChild(card);
+    recompute();
+  }
+
   function render() {
     renderFilterBar();
+    renderWhatIf();
     var root = qs("#recommendations-root");
     root.innerHTML = "";
     var profile = S.getProfile();
@@ -197,7 +266,7 @@
         return;
       }
       var grid = el("div", { class: "uni-grid" });
-      list.forEach(function (m) { grid.appendChild(renderUniCard(m)); });
+      list.forEach(function (m) { grid.appendChild(renderUniCard(m, render)); });
       root.appendChild(grid);
     });
 
@@ -210,5 +279,5 @@
   }
 
   global.Uniora = global.Uniora || {};
-  global.Uniora.recommendations = { init: render };
+  global.Uniora.recommendations = { init: render, renderUniCard: renderUniCard };
 })(window);

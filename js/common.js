@@ -68,6 +68,18 @@
       steps.appendChild(link);
     });
     inner.appendChild(steps);
+
+    var favLink = el(
+      "a",
+      {
+        class: "site-nav__fav-link" + (activeKey === "favorites" ? " site-nav__fav-link--active" : ""),
+        href: "favorites.html",
+        title: "Избранное"
+      },
+      ["♥ Избранное"]
+    );
+    inner.appendChild(favLink);
+
     mount.appendChild(inner);
   }
 

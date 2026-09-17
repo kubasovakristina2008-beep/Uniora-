@@ -214,6 +214,12 @@
       ])
     ]);
     container.appendChild(toggleWrap);
+
+    container.appendChild(
+      el("a", { href: "country-guide.html", class: "btn btn--ghost btn--sm", style: "margin-top:16px;display:inline-flex;" }, [
+        "Ещё не решили? Сравнить страны →"
+      ])
+    );
   }
 
   // ---------------- Step 4 — достижения ----------------

@@ -34,6 +34,7 @@
         toefl: { value: null, notTaken: false },
         gpa: { value: null, notTaken: false }
       },
+      documents: {},
       createdAt: null,
       updatedAt: null
     };
