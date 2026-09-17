@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Uniora — персональный маршрут поступления</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="uniora-nav" data-theme="dark"></div>
+
+<section class="hero">
+  <canvas class="hero__canvas" id="hero-stars"></canvas>
+  <div class="hero__inner">
+    <h1 class="hero__title">Твой новый день начинается здесь</h1>
+    <p class="hero__subtitle">
+      Uniora строит персональный маршрут поступления в зарубежный вуз — на основе твоего профиля,
+      а не общего каталога. Честные рекомендации, понятные шаги, без вымышленных гарантий.
+    </p>
+    <div class="hero__actions">
+      <a href="profile.html" class="btn btn--primary">Построить маршрут</a>
+    </div>
+
+    <div class="route-preview">
+      <div class="route-preview__step"><span class="route-preview__dot"></span>Профиль</div>
+      <span class="route-preview__arrow">→</span>
+      <div class="route-preview__step"><span class="route-preview__dot"></span>Диагностика</div>
+      <span class="route-preview__arrow">→</span>
+      <div class="route-preview__step"><span class="route-preview__dot"></span>Рекомендации</div>
+      <span class="route-preview__arrow">→</span>
+      <div class="route-preview__step"><span class="route-preview__dot"></span>Сравнение</div>
+      <span class="route-preview__arrow">→</span>
+      <div class="route-preview__step"><span class="route-preview__dot"></span>Roadmap</div>
+    </div>
+  </div>
+</section>
+
+<section class="page-section">
+  <div class="container">
+    <div class="section-heading text-center" style="margin:0 auto var(--space-4);">
+      <span class="eyebrow">Как это работает</span>
+      <h2>Три шага от «не знаю, куда поступать» до маршрута с дедлайнами</h2>
+    </div>
+    <div class="how-it-works">
+      <div class="card how-card">
+        <div class="how-card__num">1</div>
+        <h3>Расскажи о себе</h3>
+        <p>Класс, специальность (или мини-квиз, если пока не знаешь), страны, экзамены и достижения — 6 коротких шагов.</p>
+      </div>
+      <div class="card how-card">
+        <div class="how-card__num">2</div>
+        <h3>Получи честную диагностику</h3>
+        <p>Портрет профиля человеческим языком: что уже сильно, где пробелы — без вымышленных процентов и баллов.</p>
+      </div>
+      <div class="card how-card">
+        <div class="how-card__num">3</div>
+        <h3>Иди по маршруту</h3>
+        <p>Рекомендации вузов с объяснением «почему», сравнение вариантов и Roadmap с дедлайнами и шагами.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="page-section page-section--tight">
+  <div class="container container--narrow">
+    <div class="trust-block">
+      <div class="trust-block__icon">🧭</div>
+      <div>
+        <h3 style="margin-bottom:6px;">Честно про методику</h3>
+        <p style="margin-bottom:0;">
+          Категории «Match / Reach / Safety» и приоритеты портфолио по странам — собственная качественная
+          эвристика команды Uniora, а не официальная статистика вузов. Стоимость обучения нигде не используется
+          как фильтр. Дедлайны — данные прошлого цикла подачи, всегда проверяйте актуальные даты на сайте вуза.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  Uniora — демо-проект для LOCUS Startup Hackathon 2026. Данные учебные, не являются официальной статистикой вузов.
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/state.js"></script>
+<script src="js/match.js"></script>
+<script src="js/common.js"></script>
+<script>
+  Uniora.common.renderNav(null);
+  Uniora.common.starField(document.getElementById("hero-stars"), { density: 0.00025 });
+</script>
+</body>
+</html>

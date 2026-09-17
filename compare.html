@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Сравнение — Uniora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="uniora-nav"></div>
+
+<section class="page-section">
+  <div class="container">
+    <div class="section-heading">
+      <span class="eyebrow">Сравнение</span>
+      <h2>До 3 вузов рядом</h2>
+      <p>Стоимость обучения — только справочно, если есть в источнике. В текущем датасете она не публикуется ни у одного вуза.</p>
+    </div>
+    <div id="compare-root"></div>
+  </div>
+</section>
+
+<script src="js/data.js"></script>
+<script src="js/state.js"></script>
+<script src="js/match.js"></script>
+<script src="js/common.js"></script>
+<script src="js/compare.js"></script>
+<script>
+  Uniora.common.renderNav("compare");
+  Uniora.compare.init();
+</script>
+</body>
+</html>

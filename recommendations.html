@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Рекомендации — Uniora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="uniora-nav"></div>
+
+<section class="page-section">
+  <div class="container">
+    <div class="section-heading">
+      <span class="eyebrow">Рекомендации</span>
+      <h2>Вузы, подобранные под ваш профиль</h2>
+      <p>Категории Match / Reach / Safety — эвристика Uniora на основе ваших данных, не гарантия поступления.</p>
+    </div>
+    <div id="filter-bar"></div>
+    <div id="recommendations-root"></div>
+  </div>
+</section>
+
+<script src="js/data.js"></script>
+<script src="js/state.js"></script>
+<script src="js/match.js"></script>
+<script src="js/common.js"></script>
+<script src="js/recommendations.js"></script>
+<script>
+  Uniora.common.renderNav("recommendations");
+  Uniora.recommendations.init();
+</script>
+</body>
+</html>
