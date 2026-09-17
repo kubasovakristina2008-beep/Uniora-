@@ -24,11 +24,15 @@
     var bar = el("div", { class: "filter-bar" });
 
     D.MAJORS.forEach(function (m) {
-      var chip = el("button", {
-        type: "button",
-        class: "chip" + (profile.major === m.id ? " chip--selected" : "")
-      }, [m.icon + " " + m.label]);
-      chip.addEventListener("click", function () { S.updateProfile({ major: m.id, majorFromQuiz: false }); render(); });
+      var selected = profile.majors.indexOf(m.id) !== -1;
+      var chip = el("button", { type: "button", class: "chip" + (selected ? " chip--selected" : "") }, [m.icon + " " + m.label]);
+      chip.addEventListener("click", function () {
+        var list = profile.majors.slice();
+        var idx = list.indexOf(m.id);
+        if (idx >= 0) list.splice(idx, 1); else list.push(m.id);
+        S.updateProfile({ majors: list, majorsFromQuiz: false });
+        render();
+      });
       bar.appendChild(chip);
     });
 
@@ -52,10 +56,7 @@
       bar.appendChild(chip);
     });
 
-    var allChip = el("button", {
-      type: "button",
-      class: "chip" + (profile.showAllCountries ? " chip--selected" : "")
-    }, ["🌍 Все страны"]);
+    var allChip = el("button", { type: "button", class: "chip" + (profile.showAllCountries ? " chip--selected" : "") }, ["🌍 Все страны"]);
     allChip.addEventListener("click", function () { S.updateProfile({ showAllCountries: !profile.showAllCountries }); render(); });
     bar.appendChild(allChip);
 
@@ -78,6 +79,7 @@
     var favorites = S.getFavorites();
     var inCompare = compareList.indexOf(uni.id) !== -1;
     var isFav = favorites.indexOf(uni.id) !== -1;
+    var isTarget = S.getProfile().targetUniversityId === uni.id;
 
     var factRows = match.reasons.map(function (f) {
       return el("div", { class: factRowClass(f.tone) }, [el("span", { class: "fact-row__dot" }), el("span", {}, [f.text])]);
@@ -90,15 +92,20 @@
     var card = el("div", { class: "card uni-card" }, [
       el("div", { class: "uni-card__top" }, [
         el("div", {}, [
-          el("div", { class: "uni-card__name" }, [uni.name]),
+          el("div", { class: "uni-card__name" }, [uni.name, isTarget ? el("span", { class: "badge badge--target" }, ["🎯 Цель"]) : null]),
           el("div", { class: "uni-card__place" }, [C.countryFlag(uni.country) + " " + uni.city + ", " + C.countryLabel(uni.country)])
         ]),
-        el("span", { class: "badge badge--" + match.category }, [CATEGORY_LABEL[match.category]])
+        el("div", { class: "flex-col", style: "align-items:flex-end;gap:4px;" }, [
+          el("span", { class: "badge badge--" + match.category }, [CATEGORY_LABEL[match.category]]),
+          el("span", { class: "match-percent" }, [match.matchPercent + "% совпадение"])
+        ])
       ]),
       el("div", { class: "uni-card__facts" }, factRows),
       el("div", { class: "uni-card__facts", style: "border-top:1px solid rgba(20,22,43,0.06);padding-top:8px;" }, [
         el("div", {}, ["📅 " + deadlineParts.join(" · ") + " (данные прошлого цикла подачи, уточняйте на сайте)"]),
         el("div", {}, ["🏆 Рейтинг: #" + uni.rankingCountry + " в стране, #" + uni.rankingWorld + " в мире (ориентировочно)"]),
+        el("div", {}, ["🎓 Стипендия: " + uni.scholarship]),
+        el("div", {}, ["🏠 Общежитие: " + uni.dormitory]),
         uni.comment ? el("div", { class: "muted" }, ["ⓘ " + uni.comment]) : null
       ]),
       el("div", { class: "uni-card__actions" }, [
@@ -123,67 +130,92 @@
               favBtn.addEventListener("click", function () { S.toggleFavorite(uni.id); onChange(); });
               return favBtn;
             })(),
-        el("a", { class: "btn btn--ghost", href: uni.website, target: "_blank", rel: "noopener" }, ["Сайт"])
+        el("a", { class: "btn btn--ghost", href: uni.website, target: "_blank", rel: "noopener" }, ["Сайт"]),
+        (function () {
+          var targetBtn = el("button", { type: "button", class: "btn btn--sm " + (isTarget ? "btn--primary" : "btn--secondary") }, [isTarget ? "🎯 Цель" : "Сделать целью"]);
+          targetBtn.addEventListener("click", function () {
+            S.updateProfile({ targetUniversityId: isTarget ? null : uni.id });
+            C.toast(isTarget ? "Цель снята" : "Roadmap теперь ведёт к этому вузу");
+            onChange();
+          });
+          return targetBtn;
+        })()
       ])
     ]);
     return card;
   }
 
-  // --- Мини-симулятор «Что если»: считает гипотетический IELTS через
-  // matchUniversities с подменённым значением, не сохраняя его в профиль ---
+  // --- Симулятор «Что если»: пересчитывает matchUniversities с подменёнными
+  // профильными баллами, не сохраняя их в реальный профиль ---
   function renderWhatIf() {
     var mount = qs("#whatif-bar");
     if (!mount) return;
     mount.innerHTML = "";
     var profile = S.getProfile();
-    if (!profile.major || (!profile.showAllCountries && profile.countries.length === 0)) return;
+    if (!profile.majors.length || (!profile.showAllCountries && profile.countries.length === 0)) return;
 
-    var baseline = (!profile.exams.ielts.notTaken && typeof profile.exams.ielts.value === "number")
-      ? profile.exams.ielts.value : 6.0;
-    var simValue = baseline;
+    var subjects = D.subjectsForMajors(profile.majors);
+    if (!subjects.length) return;
 
-    var display = el("span", { class: "whatif-value" }, ["IELTS: " + simValue.toFixed(1)]);
+    var simValues = {};
+    subjects.forEach(function (s) {
+      var current = profile.exams.subjects[s.key];
+      simValues[s.key] = (current && !current.notTaken && typeof current.value === "number") ? current.value : 50;
+    });
+
     var resultBox = el("div", { class: "whatif-result" });
+    var sliderRows = [];
 
     function recompute() {
-      display.textContent = "IELTS: " + simValue.toFixed(1);
       var clonedProfile = JSON.parse(JSON.stringify(profile));
-      clonedProfile.exams.ielts = { value: simValue, notTaken: false };
+      subjects.forEach(function (s) {
+        clonedProfile.exams.subjects[s.key] = { value: simValues[s.key], notTaken: false };
+      });
       var before = M.matchUniversities(profile);
       var after = M.matchUniversities(clonedProfile);
       var beforeMap = {};
-      before.forEach(function (m) { beforeMap[m.university.id] = m.category; });
-      var changed = [];
-      after.forEach(function (m) {
-        var prevCat = beforeMap[m.university.id];
-        if (prevCat && prevCat !== m.category) changed.push({ name: m.university.name, from: prevCat, to: m.category });
-      });
+      before.forEach(function (m) { beforeMap[m.university.id] = m; });
 
       resultBox.innerHTML = "";
-      var delta = Math.round((simValue - baseline) * 10) / 10;
-      var deltaText = delta === 0 ? "текущий балл" : (delta > 0 ? "+" + delta.toFixed(1) : String(delta.toFixed(1))) + " к текущему баллу";
-      if (!changed.length) {
-        resultBox.appendChild(el("p", { class: "muted", style: "margin:8px 0 0;" }, ["При " + deltaText + " категории вузов не меняются."]));
+      if (!after.length) {
+        resultBox.appendChild(el("p", { class: "muted", style: "margin:8px 0 0;" }, ["Пока нет подобранных вузов для сравнения — уточните фильтры выше."]));
         return;
       }
       var labelMap = { match: "Match", reach: "Reach", safety: "Safety" };
-      resultBox.appendChild(el("p", { style: "margin:8px 0 4px;font-weight:600;" }, ["Если IELTS будет " + simValue.toFixed(1) + " (" + deltaText + "):"]));
-      var list = el("ul", { style: "margin:0;padding-left:18px;" });
-      changed.forEach(function (c) {
-        list.appendChild(el("li", {}, [c.name + ": " + labelMap[c.from] + " → " + labelMap[c.to]]));
+      var list = el("div", { class: "whatif-list" });
+      after.forEach(function (m) {
+        var prev = beforeMap[m.university.id];
+        var changed = prev && prev.category !== m.category;
+        list.appendChild(
+          el("div", { class: "whatif-row-item" }, [
+            el("span", { class: "whatif-row-item__name" }, [m.university.name]),
+            el("span", { class: "whatif-row-item__pct" }, [(prev ? prev.matchPercent : m.matchPercent) + "% → " + m.matchPercent + "%"]),
+            changed
+              ? el("span", { class: "whatif-row-item__change" }, [labelMap[prev.category] + " → " + labelMap[m.category]])
+              : el("span", { class: "muted" }, ["без изменений"])
+          ])
+        );
       });
       resultBox.appendChild(list);
     }
 
-    var minus = el("button", { type: "button", class: "btn btn--secondary btn--sm" }, ["−0.5"]);
-    var plus = el("button", { type: "button", class: "btn btn--secondary btn--sm" }, ["+0.5"]);
-    minus.addEventListener("click", function () { simValue = Math.max(0, Math.round((simValue - 0.5) * 10) / 10); recompute(); });
-    plus.addEventListener("click", function () { simValue = Math.min(9, Math.round((simValue + 0.5) * 10) / 10); recompute(); });
+    var sliders = el("div", { class: "whatif-sliders" });
+    subjects.forEach(function (s) {
+      var display = el("span", { class: "whatif-value" }, [s.label + ": " + Math.round(simValues[s.key])]);
+      var range = el("input", { type: "range", min: "0", max: "100", step: "1", value: String(simValues[s.key]) });
+      range.addEventListener("input", function () {
+        simValues[s.key] = parseFloat(range.value);
+        display.textContent = s.label + ": " + Math.round(simValues[s.key]);
+        recompute();
+      });
+      sliders.appendChild(el("div", { class: "whatif-slider-row" }, [display, range]));
+      sliderRows.push(range);
+    });
 
     var card = el("div", { class: "card whatif-card" }, [
-      el("div", { class: "field-label" }, ["Мини-симулятор «Что если»"]),
-      el("p", { class: "muted", style: "margin-top:-6px;" }, ["Не сохраняет значение в профиль — только показывает, как изменились бы категории вузов."]),
-      el("div", { class: "whatif-row" }, [minus, display, plus]),
+      el("div", { class: "field-label" }, ["Симулятор «Что если» — подвинь профильные баллы"]),
+      el("p", { class: "muted", style: "margin-top:-6px;" }, ["Не сохраняет значения в профиль — только показывает, как изменились бы категории и процент совпадения."]),
+      sliders,
       resultBox
     ]);
     mount.appendChild(card);
@@ -197,7 +229,7 @@
     root.innerHTML = "";
     var profile = S.getProfile();
 
-    if (!profile.major) {
+    if (!profile.majors.length) {
       C.emptyState(root, {
         icon: "🎯",
         title: "Сначала выберите специальность",
@@ -233,9 +265,9 @@
       return;
     }
 
-    var strength = M.portfolioStrength(profile);
-    var examsSummary = M.examsTakenSummary(profile);
-    if (strength.filled === 0 && examsSummary.count === 0) {
+    var exSummary = M.examsTakenSummary(profile);
+    var achCount = D.ACHIEVEMENT_CATEGORIES.reduce(function (sum, c) { return sum + profile.achievements[c.key].length; }, 0);
+    if (achCount === 0 && exSummary.count === 0) {
       root.appendChild(
         el("div", { class: "card", style: "margin-bottom:20px;border-color:var(--aurora-violet);" }, [
           el("div", { class: "flex items-center justify-between gap-2", style: "flex-wrap:wrap;" }, [
@@ -248,6 +280,13 @@
 
     var byCategory = { match: [], reach: [], safety: [] };
     matches.forEach(function (m) { byCategory[m.category].push(m); });
+    CATEGORY_ORDER.forEach(function (cat) { byCategory[cat].sort(function (a, b) { return b.matchPercent - a.matchPercent; }); });
+
+    root.appendChild(el("h3", {}, ["Твоя карта вузов"]));
+    var countsRow = el("div", { class: "flex gap-2", style: "margin-bottom:16px;flex-wrap:wrap;" }, CATEGORY_ORDER.map(function (cat) {
+      return el("span", { class: "badge badge--" + cat }, [byCategory[cat].length + " " + CATEGORY_LABEL[cat]]);
+    }));
+    root.appendChild(countsRow);
 
     CATEGORY_ORDER.forEach(function (cat) {
       var list = byCategory[cat];
@@ -258,11 +297,7 @@
         ])
       );
       if (list.length === 0) {
-        root.appendChild(
-          el("div", { class: "category-note" }, [
-            "Нет вузов в категории " + CATEGORY_LABEL[cat] + " среди выбранных стран — попробуйте добавить ещё одну страну."
-          ])
-        );
+        root.appendChild(el("div", { class: "category-note" }, ["Нет вузов в категории " + CATEGORY_LABEL[cat] + " среди выбранных стран — попробуйте добавить ещё одну страну."]));
         return;
       }
       var grid = el("div", { class: "uni-grid" });

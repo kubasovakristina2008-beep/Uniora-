@@ -40,6 +40,7 @@
   function getMajor(id) { return data.MAJORS.filter(function (m) { return m.id === id; })[0] || null; }
   function getCountry(id) { return data.COUNTRIES.filter(function (c) { return c.id === id; })[0] || null; }
   function majorLabel(id) { var m = getMajor(id); return m ? m.label : "—"; }
+  function majorsLabel(ids) { return (ids && ids.length) ? ids.map(majorLabel).join(", ") : "Не указано"; }
   function countryLabel(id) { var c = getCountry(id); return c ? c.label : id; }
   function countryFlag(id) { var c = getCountry(id); return c ? c.flag : ""; }
 
@@ -89,7 +90,7 @@
     var profile = global.Uniora.state.getProfile();
     mount.innerHTML = "";
 
-    if (!profile.major && (!profile.countries || profile.countries.length === 0)) {
+    if ((!profile.majors || !profile.majors.length) && (!profile.countries || profile.countries.length === 0)) {
       mount.appendChild(
         el("div", { class: "context-bar context-bar--empty" }, [
           el("span", {}, ["Профиль ещё не заполнен"]),
@@ -100,9 +101,9 @@
     }
 
     var chips = el("div", { class: "context-bar__chips" });
-    if (profile.major) {
-      chips.appendChild(el("span", { class: "chip chip--static" }, [majorLabel(profile.major)]));
-    }
+    (profile.majors || []).forEach(function (m) {
+      chips.appendChild(el("span", { class: "chip chip--static" }, [majorLabel(m)]));
+    });
     if (profile.showAllCountries) {
       chips.appendChild(el("span", { class: "chip chip--static" }, ["Все страны"]));
     } else if (profile.countries && profile.countries.length) {
@@ -244,6 +245,7 @@
     getMajor: getMajor,
     getCountry: getCountry,
     majorLabel: majorLabel,
+    majorsLabel: majorsLabel,
     countryLabel: countryLabel,
     countryFlag: countryFlag,
     renderNav: renderNav,

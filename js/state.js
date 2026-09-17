@@ -12,29 +12,23 @@
   function defaultProfile() {
     return {
       gradeLevel: null,
-      major: null,
-      majorFromQuiz: false,
+      majors: [],
+      majorsFromQuiz: false,
       countries: [],
       showAllCountries: false,
       achievements: {
-        sport: { practices: [], level: null },
-        volunteering: { active: false, spheres: [], hours: null },
-        academic: {
-          projects: [],
-          olympiads: [],
-          research: [],
-          hackathons: []
-        },
-        internship: { active: false, sphere: null },
-        creative: { works: [] }
+        olympiads: [],
+        certificates: [],
+        volunteering: [],
+        projects: []
       },
       exams: {
         ielts: { value: null, notTaken: false },
-        sat: { value: null, notTaken: false },
-        toefl: { value: null, notTaken: false },
-        gpa: { value: null, notTaken: false }
+        gpa: { value: null, notTaken: false },
+        subjects: {}
       },
       documents: {},
+      targetUniversityId: null,
       createdAt: null,
       updatedAt: null
     };
@@ -107,7 +101,8 @@
   function isProfileMinimal(profile) {
     profile = profile || getProfile();
     var hasCountry = profile.showAllCountries || (profile.countries && profile.countries.length > 0);
-    return !!profile.major && hasCountry;
+    var hasMajor = profile.majors && profile.majors.length > 0;
+    return !!hasMajor && hasCountry;
   }
 
   // --- Roadmap ---

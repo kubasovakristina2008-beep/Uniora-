@@ -1,4 +1,8 @@
-/* Uniora — экран «Roadmap»: карта-созвездие с пробелами, мероприятиями и своими пунктами. */
+/* Uniora — экран «Roadmap»: линейный путь к целевому вузу — 9 шагов от анкеты
+   до зачисления. Цель выбирается в «Сравнении» или «Избранном» (кнопка
+   «Сделать целью»). Первые 5 шагов синхронизируются автоматически с реальными
+   данными профиля, последние 4 — отмечаются вручную (визу/собеседование
+   нельзя определить из локальных данных). */
 (function (global) {
   "use strict";
 
@@ -9,106 +13,82 @@
   var el = C.el;
   var qs = C.qs;
 
-  var WEIGHT_LABEL = { high: "Высокий", medium: "Средний", low: "Низкий" };
-  var activePriorityCountry = null;
-  var starRefs = {}; // id -> { button, mark, star }
+  var starRefs = {};
   var stopStarfield = null;
-  var viewMode = "constellation"; // "constellation" | "list" — не персистится между сессиями
+  var viewMode = "constellation"; // "constellation" | "list"
 
-  var DOCUMENT_ITEMS = [
-    { key: "motivationLetter", label: "Мотивационное письмо" },
-    { key: "essay", label: "Эссе" },
-    { key: "recommendationLetters", label: "Рекомендательные письма" },
-    { key: "transcript", label: "Переведённый и заверенный транскрипт" },
-    { key: "languageCertificate", label: "Языковой сертификат (IELTS/TOEFL и т.п.)" },
-    { key: "portfolio", label: "Портфолио работ", onlyMajor: "arts" }
-  ];
+  var DOC_STATUS_LABEL = { not_started: "Не начато", in_progress: "В процессе", done: "Готово" };
+  var DOC_STATUS_ORDER = ["not_started", "in_progress", "done"];
 
-  // ---------------- Синхронизация звёзд-пробелов ----------------
-  function syncGapStars(profile) {
-    var gapsInfo = M.computeGaps(profile);
-    var currentGapIds = gapsInfo.gaps.map(function (g) { return g.id; });
-    var strengthCategories = gapsInfo.strengths.map(function (s) { return s.category; });
-    var list = S.getRoadmap();
-
-    gapsInfo.gaps.forEach(function (g) {
-      var exists = list.some(function (s) { return s.id === g.id; });
-      if (!exists) {
-        S.upsertRoadmapStar({
-          id: g.id, type: "gap", title: g.categoryLabel, description: g.nextStep,
-          category: g.category, weight: g.weight, status: "todo", deadline: null
-        });
-      }
-    });
-
-    list = S.getRoadmap();
-    list.filter(function (s) { return s.type === "gap"; }).forEach(function (s) {
-      if (s.status === "done") return;
-      if (strengthCategories.indexOf(s.category) !== -1) {
-        S.setStarStatus(s.id, "done");
-      } else if (currentGapIds.indexOf(s.id) === -1) {
-        S.removeRoadmapStar(s.id);
-      }
-    });
-  }
-
-  // ---------------- Приоритеты по странам ----------------
-  function renderPriorityPanel(container, profile) {
-    var countries = profile.showAllCountries ? D.COUNTRIES.map(function (c) { return c.id; }) : profile.countries;
-    if (!countries.length) return;
-    activePriorityCountry = activePriorityCountry && countries.indexOf(activePriorityCountry) !== -1 ? activePriorityCountry : countries[0];
-
-    var panel = el("div", { class: "priority-panel" });
-    var body = el("div", { class: "priority-panel__body" });
-    var header = el("button", { type: "button", class: "priority-panel__header" }, [
-      el("span", {}, ["🧭 Что ценится при поступлении"]),
-      el("span", {}, ["▾"])
-    ]);
-    header.addEventListener("click", function () { panel.classList.toggle("priority-panel--open"); });
-
-    function renderBody() {
-      body.innerHTML = "";
-      var tabs = el("div", { class: "priority-tabs" });
-      countries.forEach(function (cid) {
-        var tab = el("button", {
-          type: "button",
-          class: "priority-tab" + (cid === activePriorityCountry ? " priority-tab--active" : "")
-        }, [C.countryFlag(cid) + " " + C.countryLabel(cid)]);
-        tab.addEventListener("click", function () { activePriorityCountry = cid; renderBody(); });
-        tabs.appendChild(tab);
-      });
-      body.appendChild(tabs);
-
-      var priorities = D.PRIORITIES[activePriorityCountry];
-      Object.keys(D.CATEGORY_LABELS).forEach(function (cat) {
-        var p = priorities[cat];
-        body.appendChild(
-          el("div", { class: "priority-row" }, [
-            el("div", {}, [
-              el("div", { class: "priority-row__label" }, [D.CATEGORY_LABELS[cat]]),
-              el("div", { class: "priority-row__note" }, [p.note])
-            ]),
-            el("span", { class: "badge badge--weight-" + p.level }, [WEIGHT_LABEL[p.level]])
-          ])
-        );
-      });
-      body.appendChild(el("div", { class: "disclaimer", style: "margin-top:12px;" }, [D.PRIORITY_METHOD_DISCLAIMER]));
+  // ---------------- Шаги пути к целевому вузу ----------------
+  function computeAutoStatus(autoKey, profile, targetUni) {
+    if (autoKey === "anketa") return S.isProfileMinimal(profile) ? "done" : "todo";
+    if (autoKey === "english") {
+      var e = profile.exams.ielts;
+      return (e && !e.notTaken && typeof e.value === "number") ? "done" : "todo";
     }
-    renderBody();
-
-    panel.appendChild(header);
-    panel.appendChild(body);
-    container.appendChild(panel);
+    if (autoKey === "subjects") {
+      var subs = M.relevantSubjectsForUni(targetUni, profile);
+      if (!subs.length) return "done";
+      return subs.every(function (s) {
+        var v = profile.exams.subjects[s.key];
+        return v && !v.notTaken && typeof v.value === "number";
+      }) ? "done" : "todo";
+    }
+    if (autoKey === "documents") {
+      var docs = profile.documents || {};
+      return ["transcript", "recommendationLetters", "languageCertificate"].every(function (k) { return docs[k] === "done"; }) ? "done" : "todo";
+    }
+    if (autoKey === "motivation") {
+      var docs2 = profile.documents || {};
+      return docs2.motivationLetter === "done" ? "done" : "todo";
+    }
+    return null;
   }
 
-  // ---------------- Расположение звёзд (созвездие) ----------------
+  function buildJourneyDefs(profile, targetUni) {
+    var subs = M.relevantSubjectsForUni(targetUni, profile);
+    var subjectsDesc = subs.length
+      ? "Нужны: " + subs.map(function (s) { return s.label + " от " + targetUni.subjects[s.key]; }).join(", ") + "."
+      : "Для этой специальности в этом вузе профильные предметы не требуются.";
+
+    return [
+      { id: "journey-anketa", icon: "📝", title: "Анкета заполнена", description: "Специальность и страна указаны в профиле.", auto: "anketa" },
+      { id: "journey-english", icon: "🗣️", title: "Английский язык — IELTS от " + targetUni.ielts, description: "Добавьте актуальный балл IELTS в анкете (шаг 5).", auto: "english" },
+      { id: "journey-subjects", icon: "📚", title: "Профильные экзамены", description: subjectsDesc, auto: "subjects" },
+      { id: "journey-documents", icon: "📄", title: "Сбор документов", description: "Транскрипт, рекомендательные письма и языковой сертификат — готовы (см. чек-лист ниже).", auto: "documents" },
+      { id: "journey-motivation", icon: "✍️", title: "Мотивационное письмо", description: "Отметьте как готовое в чек-листе документов ниже.", auto: "motivation" },
+      { id: "journey-submission", icon: "📮", title: "Подача заявки", description: "Дедлайн подачи: " + targetUni.deadlineMain + " (данные прошлого цикла, уточняйте на сайте).", deadline: targetUni.deadlineMain },
+      { id: "journey-interview", icon: "🎥", title: "Собеседование", description: "Если вуз проводит собеседование — обычно вскоре после подачи заявки." },
+      { id: "journey-visa", icon: "🛂", title: "Виза и разрешение на учёбу", description: "Начинайте оформление сразу после письма о зачислении от вуза." },
+      { id: "journey-enrollment", icon: "🎓", title: "Зачисление", description: "Ваша цель — " + targetUni.name + "." }
+    ];
+  }
+
+  function syncJourneySteps(profile, targetUni) {
+    var list = S.getRoadmap();
+    list.filter(function (s) { return s.type === "journey" && s.targetUniversityId !== targetUni.id; })
+      .forEach(function (s) { S.removeRoadmapStar(s.id); });
+
+    var defs = buildJourneyDefs(profile, targetUni);
+    defs.forEach(function (def, i) {
+      var current = S.getRoadmap().filter(function (s) { return s.id === def.id; })[0];
+      var autoStatus = def.auto ? computeAutoStatus(def.auto, profile, targetUni) : null;
+      if (!current) {
+        S.upsertRoadmapStar({
+          id: def.id, type: "journey", icon: def.icon, title: def.title, description: def.description,
+          status: autoStatus || "todo", deadline: def.deadline || null, targetUniversityId: targetUni.id, order: i
+        });
+      } else {
+        var patch = { title: def.title, description: def.description, order: i, icon: def.icon };
+        S.upsertRoadmapStar(Object.assign({ id: def.id }, patch));
+        if (def.auto) S.setStarStatus(def.id, autoStatus);
+      }
+    });
+  }
+
   function orderStars(list) {
-    var weightRank = { high: 0, medium: 1, low: 2 };
-    var gaps = list.filter(function (s) { return s.type === "gap"; })
-      .sort(function (a, b) { return (weightRank[a.weight] || 3) - (weightRank[b.weight] || 3); });
-    var events = list.filter(function (s) { return s.type === "event"; });
-    var customs = list.filter(function (s) { return s.type === "custom"; });
-    return gaps.concat(events, customs);
+    return list.slice().sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
   }
 
   function computePositions(count) {
@@ -119,24 +99,18 @@
       var side = i % 2 === 0 ? -1 : 1;
       var amplitude = 16 + Math.random() * 12;
       var jitter = (Math.random() - 0.5) * 8;
-      var x = 50 + side * amplitude + jitter;
-      x = Math.max(14, Math.min(86, x));
+      var x = clamp(50 + side * amplitude + jitter, 14, 86);
       positions.push({ x: x, y: y });
     }
     return positions;
   }
+  function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
 
   function findNextStarId(orderedStars) {
     for (var i = 0; i < orderedStars.length; i++) {
       if (orderedStars[i].status !== "done") return orderedStars[i].id;
     }
     return null;
-  }
-
-  function starIcon(star) {
-    if (star.type === "event") return "🏆";
-    if (star.type === "custom") return "✎";
-    return "✦";
   }
 
   function updateNextActionCard(orderedStars, nextId) {
@@ -148,9 +122,9 @@
       mount.appendChild(
         el("div", { class: "next-action-card" }, [
           el("div", {}, [
-            el("div", { class: "next-action-card__eyebrow" }, ["Все текущие шаги выполнены"]),
-            el("div", { class: "next-action-card__title" }, ["Отличная работа — маршрут пройден"]),
-            el("p", { class: "next-action-card__desc" }, ["Загляните в панель приоритетов ещё раз — возможно, стоит усилить что-то сверх минимума."])
+            el("div", { class: "next-action-card__eyebrow" }, ["Маршрут пройден 🎓"]),
+            el("div", { class: "next-action-card__title" }, ["Все шаги к этой цели выполнены"]),
+            el("p", { class: "next-action-card__desc" }, ["Отличная работа! Можно выбрать вторую цель для сравнения (в «Сравнении») и повторить путь параллельно."])
           ])
         ])
       );
@@ -160,8 +134,8 @@
     mount.appendChild(
       el("div", { class: "next-action-card" }, [
         el("div", {}, [
-          el("div", { class: "next-action-card__eyebrow" }, ["Следующее действие"]),
-          el("div", { class: "next-action-card__title" }, [starIcon(star) + " " + star.title]),
+          el("div", { class: "next-action-card__eyebrow" }, ["Следующий шаг"]),
+          el("div", { class: "next-action-card__title" }, [(star.icon || "✦") + " " + star.title]),
           el("p", { class: "next-action-card__desc" }, [star.description || "Отметьте выполненным, когда сделаете."])
         ]),
         el("button", { type: "button", class: "btn btn--dark", onclick: function () { toggleStar(star.id); } }, ["Отметить выполненным"])
@@ -193,31 +167,18 @@
     ordered.forEach(function (s) {
       var ref = starRefs[s.id];
       if (!ref) return;
-      var fresh = list.filter(function (x) { return x.id === s.id; })[0];
       ref.button.classList.remove("star-btn--done", "star-btn--next");
-      if (fresh.status === "done") ref.button.classList.add("star-btn--done");
-      else if (fresh.id === nextId) ref.button.classList.add("star-btn--next");
+      if (s.status === "done") ref.button.classList.add("star-btn--done");
+      else if (s.id === nextId) ref.button.classList.add("star-btn--next");
     });
-    updateNextActionCard(ordered.map(function (s) { return list.filter(function (x) { return x.id === s.id; })[0]; }), nextId);
+    updateNextActionCard(ordered, nextId);
   }
 
   function buildConstellation(container) {
     container.innerHTML = "";
     starRefs = {};
-    var list = S.getRoadmap();
-    var ordered = orderStars(list);
-
-    if (ordered.length === 0) {
-      container.appendChild(
-        el("div", { class: "constellation-wrap", style: "display:flex;align-items:center;justify-content:center;min-height:280px;" }, [
-          el("p", { class: "muted", style: "max-width:360px;text-align:center;color:var(--lavender-faint);" }, [
-            "Явных пробелов пока не видно. Добавьте своё мероприятие или пункт ниже, чтобы маршрут начал заполняться."
-          ])
-        ])
-      );
-      updateNextActionCard([], null);
-      return;
-    }
+    var list = orderStars(S.getRoadmap());
+    if (!list.length) { updateNextActionCard([], null); return; }
 
     var wrap = el("div", { class: "constellation-wrap" });
     var canvas = el("canvas", { class: "constellation-canvas" });
@@ -227,18 +188,16 @@
     svg.setAttribute("preserveAspectRatio", "none");
     var layer = el("div", { class: "constellation-layer" });
 
-    wrap.appendChild(canvas);
-    wrap.appendChild(svg);
-    wrap.appendChild(layer);
+    wrap.appendChild(canvas); wrap.appendChild(svg); wrap.appendChild(layer);
     container.appendChild(wrap);
 
     if (stopStarfield) stopStarfield();
     stopStarfield = C.starField(canvas, { density: 0.00012 });
 
-    var positions = computePositions(ordered.length);
-    var nextId = findNextStarId(ordered);
+    var positions = computePositions(list.length);
+    var nextId = findNextStarId(list);
 
-    for (var i = 0; i < ordered.length - 1; i++) {
+    for (var i = 0; i < list.length - 1; i++) {
       var a = positions[i], b = positions[i + 1];
       var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
       line.setAttribute("x1", a.x); line.setAttribute("y1", a.y);
@@ -246,16 +205,15 @@
       svg.appendChild(line);
     }
 
-    ordered.forEach(function (star, i) {
+    list.forEach(function (star, i) {
       var pos = positions[i];
       var mark = el("span", { class: "star-btn__mark" });
       var label = el("span", { class: "star-btn__label" }, [star.title]);
-      var classes = "star-btn" + (star.type === "custom" ? " star-btn--custom" : "");
+      var classes = "star-btn";
       if (star.status === "done") classes += " star-btn--done";
       else if (star.id === nextId) classes += " star-btn--next";
       var btn = el("button", {
-        type: "button", class: classes,
-        style: "left:" + pos.x + "%;top:" + pos.y + "%;",
+        type: "button", class: classes, style: "left:" + pos.x + "%;top:" + pos.y + "%;",
         title: star.title + (star.description ? " — " + star.description : "")
       }, [mark, label]);
       btn.addEventListener("click", function () { toggleStar(star.id); });
@@ -263,88 +221,45 @@
       starRefs[star.id] = { button: btn, mark: mark, star: star };
     });
 
-    updateNextActionCard(ordered, nextId);
-  }
-
-  // ---------------- Вид «Список» ----------------
-  function deadlineTime(star) {
-    if (!star.deadline) return Infinity;
-    var t = Date.parse(star.deadline);
-    return isNaN(t) ? Infinity : t;
-  }
-
-  function orderForList(list) {
-    var weightRank = { high: 0, medium: 1, low: 2 };
-    return list.slice().sort(function (a, b) {
-      if ((a.status === "done") !== (b.status === "done")) return a.status === "done" ? 1 : -1;
-      var wa = weightRank[a.weight] !== undefined ? weightRank[a.weight] : 1.5;
-      var wb = weightRank[b.weight] !== undefined ? weightRank[b.weight] : 1.5;
-      if (wa !== wb) return wa - wb;
-      return deadlineTime(a) - deadlineTime(b);
-    });
+    updateNextActionCard(list, nextId);
   }
 
   function buildListView(container) {
     container.innerHTML = "";
-    var list = S.getRoadmap();
-    var ordered = orderStars(list); // порядок пути — источник истины для "ближайшего действия"
-    var nextId = findNextStarId(ordered);
+    var list = orderStars(S.getRoadmap());
+    if (!list.length) { updateNextActionCard([], null); return; }
+    var nextId = findNextStarId(list);
 
-    if (!list.length) {
-      container.appendChild(el("p", { class: "muted", style: "color:var(--lavender-faint);" }, [
-        "Список пуст. Явных пробелов пока не видно — добавьте своё мероприятие или пункт ниже."
-      ]));
-      updateNextActionCard([], null);
-      return;
-    }
-
-    var sorted = orderForList(list);
     var checklist = el("div", { class: "checklist" });
-    sorted.forEach(function (star) {
+    list.forEach(function (star) {
       var isNext = star.id === nextId;
       var isDone = star.status === "done";
       var check = el("button", {
-        type: "button",
-        class: "checklist-check" + (isDone ? " is-checked" : ""),
+        type: "button", class: "checklist-check" + (isDone ? " is-checked" : ""),
         title: isDone ? "Вернуть в работу" : "Отметить выполненным"
       }, [isDone ? "✓" : ""]);
       check.addEventListener("click", function () { toggleStar(star.id); });
-
-      var titleRow = el("div", { class: "checklist-title" }, [
-        starIcon(star) + " " + star.title,
-        star.weight ? el("span", { class: "badge badge--weight-" + star.weight }, [WEIGHT_LABEL[star.weight]]) : null
-      ]);
-
-      var sourceEvent = star.sourceId ? D.EVENTS.filter(function (e) { return e.id === star.sourceId; })[0] : null;
 
       checklist.appendChild(
         el("div", { class: "checklist-row" + (isDone ? " checklist-row--done" : "") + (isNext ? " checklist-row--next" : "") }, [
           check,
           el("div", { class: "checklist-body" }, [
-            titleRow,
-            star.description ? el("div", { class: "checklist-desc" }, [star.description]) : null,
-            star.deadline ? el("div", { class: "checklist-deadline" }, ["Срок: " + star.deadline]) : null
-          ]),
-          sourceEvent ? el("a", { class: "btn btn--ghost btn--sm", href: sourceEvent.website, target: "_blank", rel: "noopener" }, ["Источник"]) : null
+            el("div", { class: "checklist-title" }, [(star.icon || "✦") + " " + star.title]),
+            star.description ? el("div", { class: "checklist-desc" }, [star.description]) : null
+          ])
         ])
       );
     });
     container.appendChild(checklist);
-    updateNextActionCard(ordered, nextId);
+    updateNextActionCard(list, nextId);
   }
 
   function renderViewToggle(container) {
     var wrap = el("div", { class: "view-toggle" });
-    var tabs = [
-      { id: "constellation", label: "✨ Созвездие" },
-      { id: "list", label: "📋 Список" }
-    ];
+    var tabs = [{ id: "constellation", label: "✦ Созвездие" }, { id: "list", label: "☰ Список" }];
     var buttons = [];
     tabs.forEach(function (t) {
-      var btn = el("button", {
-        type: "button",
-        class: "view-toggle__tab" + (viewMode === t.id ? " view-toggle__tab--active" : "")
-      }, [t.label]);
+      var btn = el("button", { type: "button", class: "view-toggle__tab" + (viewMode === t.id ? " view-toggle__tab--active" : "") }, [t.label]);
       btn.addEventListener("click", function () {
         if (viewMode === t.id) return;
         viewMode = t.id;
@@ -357,154 +272,116 @@
     container.appendChild(wrap);
   }
 
-  // ---------------- Легенда ----------------
   function renderLegend(container) {
     container.appendChild(
       el("div", { class: "legend-row" }, [
-        el("div", { class: "legend-row__item" }, [el("span", { class: "legend-dot", style: "background:rgba(244,241,255,0.35);" }), "Неактуальна / ожидает"]),
-        el("div", { class: "legend-row__item" }, [el("span", { class: "legend-dot", style: "background:#fff;" }), "Ближайшее действие"]),
-        el("div", { class: "legend-row__item" }, [el("span", { class: "legend-dot", style: "background:#fff;box-shadow:0 0 6px 2px rgba(108,92,231,0.6);" }), "Выполнено"]),
-        el("div", { class: "legend-row__item" }, ["✎ — ваш собственный пункт"])
+        el("div", { class: "legend-row__item" }, [el("span", { class: "legend-dot", style: "background:rgba(244,241,255,0.35);" }), "Готово / скоро"]),
+        el("div", { class: "legend-row__item" }, [el("span", { class: "legend-dot", style: "background:#fff;" }), "Сейчас"]),
+        el("div", { class: "legend-row__item" }, [el("span", { class: "legend-dot", style: "background:#fff;box-shadow:0 0 6px 2px rgba(108,92,231,0.6);" }), "Выполнено"])
       ])
     );
   }
 
-  // ---------------- Добавить свой пункт ----------------
-  function renderAddCustomForm(container) {
-    var form = el("div", { class: "card--dark card", style: "margin-bottom:var(--space-3);" }, [
-      el("div", { class: "field-label", style: "color:var(--lavender);" }, ["Добавить свой пункт в маршрут"])
-    ]);
-    var row = el("div", { class: "add-custom-form" });
-    var titleInput = el("input", { class: "text-input", type: "text", placeholder: "Например, собрать документы для визы" });
-    var deadlineInput = el("input", { class: "text-input", type: "text", placeholder: "Срок (необязательно)", style: "max-width:200px;" });
-    var addBtn = el("button", { type: "button", class: "btn btn--dark" }, ["Добавить"]);
-    addBtn.addEventListener("click", function () {
-      if (!titleInput.value.trim()) return;
-      S.upsertRoadmapStar({
-        id: C.uid("custom"), type: "custom", title: titleInput.value.trim(),
-        description: deadlineInput.value.trim() ? "Срок: " + deadlineInput.value.trim() : "",
-        status: "todo", deadline: deadlineInput.value.trim() || null
-      });
-      titleInput.value = ""; deadlineInput.value = "";
-      rebuildMount();
-      C.toast("Пункт добавлен в маршрут");
-    });
-    row.appendChild(titleInput); row.appendChild(deadlineInput); row.appendChild(addBtn);
-    form.appendChild(row);
-    container.appendChild(form);
-  }
+  // ---------------- Чек-лист документов (3 состояния) ----------------
+  function renderDocumentsChecklist(container, profile, targetUni) {
+    var wrap = el("div", { class: "card card--dark", style: "margin-top:var(--space-3);" });
+    var doneCount = 0;
+    var applicable = D.DOCUMENT_ITEMS.filter(function (d) { return !d.onlyMajor || (profile.majors || []).indexOf(d.onlyMajor) !== -1; });
+    applicable.forEach(function (d) { if ((profile.documents || {})[d.key] === "done") doneCount++; });
 
-  // ---------------- Мероприятия ----------------
-  function renderEvents(container, profile) {
-    var events = D.EVENTS.filter(function (e) { return e.majors.indexOf(profile.major) !== -1; });
-    if (!events.length) return;
-    container.appendChild(el("h3", { style: "margin-top:var(--space-4);color:var(--lavender);" }, ["Мероприятия для вашей специальности"]));
-    var grid = el("div", { class: "event-list" });
-    var roadmapList = S.getRoadmap();
-
-    events.forEach(function (ev) {
-      var already = roadmapList.some(function (s) { return s.sourceId === ev.id; });
-      var card = el("div", { class: "event-card" }, [
-        el("div", { class: "event-card__title" }, [ev.name]),
-        el("div", { class: "event-card__meta" }, [ev.type + " · " + ev.level + " · " + ev.format + " · " + ev.timing]),
-        el("p", { style: "margin:0 0 8px;color:var(--lavender-soft);" }, [ev.whyBoost]),
-        ev.limitation ? el("p", { class: "muted", style: "margin:0;font-size:0.76rem;" }, ["Ограничение: " + ev.limitation]) : null,
-        el("div", { class: "event-card__actions" }, [
-          el("a", { class: "btn btn--secondary btn--sm", href: ev.website, target: "_blank", rel: "noopener" }, ["Сайт"]),
-          (function () {
-            var btn = el("button", { type: "button", class: "btn btn--sm " + (already ? "btn--secondary" : "btn--dark") }, [already ? "Добавлено ✓" : "Добавить в мой маршрут"]);
-            if (already) { btn.disabled = true; return btn; }
-            btn.addEventListener("click", function () {
-              window.open(ev.website, "_blank", "noopener");
-              S.upsertRoadmapStar({
-                id: C.uid("event"), type: "event", title: ev.name, description: "Запланировано: " + ev.whyBoost,
-                status: "todo", deadline: null, sourceId: ev.id
-              });
-              rebuildMount();
-              C.toast("Добавлено в маршрут как «Запланировано»");
-              btn.disabled = true;
-              btn.textContent = "Добавлено ✓";
-              btn.classList.remove("btn--dark"); btn.classList.add("btn--secondary");
-            });
-            return btn;
-          })()
-        ])
-      ]);
-      grid.appendChild(card);
-    });
-    container.appendChild(grid);
-  }
-
-  // ---------------- Чек-лист документов на подачу ----------------
-  function renderDocumentsChecklist(container, profile) {
-    var wrap = el("div", { class: "card card--dark", style: "margin-top:var(--space-3);" }, [
-      el("div", { class: "field-label", style: "color:var(--lavender);" }, ["Чек-лист документов на подачу"]),
-      el("p", { class: "muted", style: "color:var(--lavender-faint);margin-top:-4px;" }, [
-        "Ваш личный список для сбора документов — не требование конкретного вуза, у каждого могут быть свои нюансы."
+    wrap.appendChild(
+      el("div", { class: "flex items-center justify-between", style: "flex-wrap:wrap;gap:8px;" }, [
+        el("div", { class: "field-label", style: "color:var(--lavender);margin:0;" }, ["Документы на подачу — " + targetUni.name]),
+        el("span", { class: "badge badge--weight-medium" }, [doneCount + " / " + applicable.length + " готово к подаче"])
       ])
-    ]);
-    var list = el("div", { class: "doc-checklist" });
-    DOCUMENT_ITEMS.forEach(function (item) {
-      if (item.onlyMajor && profile.major !== item.onlyMajor) return;
-      var checked = !!(profile.documents && profile.documents[item.key]);
-      var cb = el("input", { type: "checkbox", checked: checked ? "checked" : null });
-      cb.addEventListener("change", function () {
-        var patch = { documents: {} };
-        patch.documents[item.key] = cb.checked;
-        S.updateProfile(patch);
+    );
+
+    var list = el("div", { class: "doc-checklist", style: "margin-top:12px;" });
+    applicable.forEach(function (item) {
+      var current = (profile.documents || {})[item.key] || "not_started";
+      var row = el("div", { class: "doc-row" }, [
+        el("span", { class: "doc-row__label" }, [item.label]),
+        el("div", { class: "doc-status-group" })
+      ]);
+      var group = row.querySelector(".doc-status-group");
+      DOC_STATUS_ORDER.forEach(function (statusKey) {
+        var chip = el("button", {
+          type: "button",
+          class: "doc-status-chip" + (current === statusKey ? " doc-status-chip--active doc-status-chip--" + statusKey : "")
+        }, [DOC_STATUS_LABEL[statusKey]]);
+        chip.addEventListener("click", function () {
+          var patch = { documents: {} };
+          patch.documents[item.key] = statusKey;
+          S.updateProfile(patch);
+          render();
+        });
+        group.appendChild(chip);
       });
-      var row = el("label", { class: "doc-checklist__row" }, [cb, el("span", {}, [item.label])]);
       list.appendChild(row);
     });
     wrap.appendChild(list);
     container.appendChild(wrap);
   }
 
+  // ---------------- Мероприятия (информационно, без привязки к пути) ----------------
+  function renderEvents(container, profile) {
+    var events = D.EVENTS.filter(function (e) { return e.majors.some(function (m) { return (profile.majors || []).indexOf(m) !== -1; }); });
+    if (!events.length) return;
+    container.appendChild(el("h3", { style: "margin-top:var(--space-4);color:var(--lavender);" }, ["Мероприятия для твоей специальности"]));
+    var grid = el("div", { class: "event-list" });
+    events.forEach(function (ev) {
+      grid.appendChild(
+        el("div", { class: "event-card" }, [
+          el("div", { class: "event-card__title" }, [ev.name]),
+          el("div", { class: "event-card__meta" }, [ev.type + " · " + ev.level + " · " + ev.format + " · " + ev.timing]),
+          el("p", { style: "margin:0 0 8px;color:var(--lavender-soft);" }, [ev.whyBoost]),
+          ev.limitation ? el("p", { class: "muted", style: "margin:0;font-size:0.76rem;" }, ["Ограничение: " + ev.limitation]) : null,
+          el("div", { class: "event-card__actions" }, [el("a", { class: "btn btn--secondary btn--sm", href: ev.website, target: "_blank", rel: "noopener" }, ["Сайт"])])
+        ])
+      );
+    });
+    container.appendChild(grid);
+  }
+
   // ---------------- Скачать план (печать) ----------------
-  function buildPrintPlan(profile) {
+  function buildPrintPlan(profile, targetUni) {
     var mount = qs("#print-plan");
     if (!mount) return;
     mount.innerHTML = "";
-    var list = S.getRoadmap();
-    var ordered = orderForList(list);
-    var nextId = findNextStarId(orderStars(list));
+    var list = orderStars(S.getRoadmap());
 
-    mount.appendChild(el("h1", {}, ["Мой маршрут поступления — Uniora"]));
-    var countriesText = profile.showAllCountries ? "все страны" : (profile.countries || []).map(C.countryLabel).join(", ");
-    mount.appendChild(el("p", {}, ["Специальность: " + C.majorLabel(profile.major) + " · Страны: " + countriesText]));
-    mount.appendChild(el("p", {}, ["Сформировано: " + new Date().toLocaleDateString("ru-RU") + ". Это личный план, не официальный документ и не гарантия поступления."]));
+    mount.appendChild(el("h1", {}, ["План поступления — Uniora"]));
+    mount.appendChild(el("p", {}, [targetUni.name + " · " + C.countryLabel(targetUni.country) + " · " + C.majorsLabel(profile.majors)]));
+    mount.appendChild(el("p", {}, ["Сформировано " + new Date().toLocaleDateString("ru-RU") + ". Личный план, не официальный документ и не гарантия поступления — сроки и требования вуза могут измениться, сверяйтесь с официальным сайтом приёмной комиссии."]));
 
-    if (nextId) {
-      var nextStar = list.filter(function (s) { return s.id === nextId; })[0];
-      mount.appendChild(el("h2", {}, ["Следующее действие"]));
-      mount.appendChild(el("p", {}, [starIcon(nextStar) + " " + nextStar.title + (nextStar.description ? " — " + nextStar.description : "")]));
-    }
+    mount.appendChild(el("h2", {}, ["Обзор"]));
+    var overview = el("div", { class: "print-plan__list" }, [
+      el("div", { class: "print-plan__row" }, ["Университет: " + targetUni.name]),
+      el("div", { class: "print-plan__row" }, ["Страна: " + targetUni.city + ", " + C.countryLabel(targetUni.country)]),
+      el("div", { class: "print-plan__row" }, ["Дедлайн подачи: " + targetUni.deadlineMain + " (прошлый цикл)"]),
+      el("div", { class: "print-plan__row" }, ["Стипендия: " + targetUni.scholarship])
+    ]);
+    mount.appendChild(overview);
 
-    mount.appendChild(el("h2", {}, ["Все шаги маршрута"]));
+    mount.appendChild(el("h2", {}, ["Шаги маршрута"]));
     var stepsList = el("div", { class: "print-plan__list" });
-    if (!ordered.length) {
-      stepsList.appendChild(el("p", {}, ["Пока нет ни одного шага в маршруте."]));
-    }
-    ordered.forEach(function (star) {
+    list.forEach(function (star, i) {
       stepsList.appendChild(
         el("div", { class: "print-plan__row" }, [
-          el("span", {}, [star.status === "done" ? "[x] " : "[ ] "]),
+          el("span", {}, [(i + 1) + ". " + (star.status === "done" ? "[x] " : "[ ] ")]),
           el("strong", {}, [star.title]),
-          star.deadline ? el("span", {}, [" — срок: " + star.deadline]) : null,
           star.description ? el("div", { class: "print-plan__desc" }, [star.description]) : null
         ])
       );
     });
     mount.appendChild(stepsList);
 
-    mount.appendChild(el("h2", {}, ["Чек-лист документов"]));
+    mount.appendChild(el("h2", {}, ["Документы на подачу"]));
     var docsList = el("div", { class: "print-plan__list" });
     var docs = profile.documents || {};
-    DOCUMENT_ITEMS.forEach(function (item) {
-      if (item.onlyMajor && profile.major !== item.onlyMajor) return;
-      docsList.appendChild(
-        el("div", { class: "print-plan__row" }, [el("span", {}, [docs[item.key] ? "[x] " : "[ ] "]), item.label])
-      );
+    D.DOCUMENT_ITEMS.forEach(function (item) {
+      if (item.onlyMajor && (profile.majors || []).indexOf(item.onlyMajor) === -1) return;
+      docsList.appendChild(el("div", { class: "print-plan__row" }, [item.label + " — " + (DOC_STATUS_LABEL[docs[item.key]] || "Не начато")]));
     });
     mount.appendChild(docsList);
   }
@@ -525,37 +402,47 @@
       return;
     }
 
-    syncGapStars(profile);
+    var targetUni = profile.targetUniversityId ? D.UNIVERSITIES.filter(function (u) { return u.id === profile.targetUniversityId; })[0] : null;
+    if (!targetUni) {
+      C.emptyState(root, {
+        icon: "🎯",
+        title: "Выберите целевой вуз",
+        text: "Маршрут строится вокруг одной цели. Отметьте вуз «Сделать целью» на странице «Сравнение» или «Избранное».",
+        actionLabel: "К рекомендациям",
+        actionHref: "recommendations.html"
+      });
+      return;
+    }
+
+    syncJourneySteps(profile, targetUni);
+    var freshProfile = S.getProfile();
 
     root.appendChild(
       el("div", { class: "flex items-center justify-between", style: "flex-wrap:wrap;gap:12px;" }, [
         el("div", {}, [
-          el("h2", { style: "color:var(--lavender);margin-bottom:6px;" }, ["Ваш маршрут"]),
+          el("h2", { style: "color:var(--lavender);margin-bottom:6px;" }, ["Твой путь к цели"]),
           el("p", { style: "color:var(--lavender-faint);max-width:560px;margin-bottom:0;" }, [
-            "Каждая звезда — шаг: пробел в портфолио, мероприятие или ваш собственный пункт. Кликните на любую невыполненную звезду, чтобы отметить её сделанной."
+            targetUni.name + " · " + C.majorsLabel(freshProfile.majors) + " · 9 шагов от анкеты до зачисления"
           ])
         ]),
         (function () {
           var btn = el("button", { type: "button", class: "btn btn--secondary btn--sm" }, ["🖨 Скачать план"]);
-          btn.addEventListener("click", function () { buildPrintPlan(S.getProfile()); window.print(); });
+          btn.addEventListener("click", function () { buildPrintPlan(S.getProfile(), targetUni); window.print(); });
           return btn;
         })()
       ])
     );
 
-    renderPriorityPanel(root, profile);
     renderLegend(root);
     renderViewToggle(root);
 
     var constellationMount = el("div", { id: "constellation-mount" });
     root.appendChild(constellationMount);
     root.appendChild(el("div", { id: "next-action-mount" }));
-    if (viewMode === "list") buildListView(constellationMount);
-    else buildConstellation(constellationMount);
+    if (viewMode === "list") buildListView(constellationMount); else buildConstellation(constellationMount);
 
-    renderAddCustomForm(root);
-    renderDocumentsChecklist(root, profile);
-    renderEvents(root, profile);
+    renderDocumentsChecklist(root, freshProfile, targetUni);
+    renderEvents(root, freshProfile);
 
     root.appendChild(
       el("div", { class: "step-actions", style: "margin-top:32px;" }, [

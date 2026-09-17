@@ -623,6 +623,26 @@ input[type="range"]:disabled { opacity: 0.4; }
 .whatif-value { font-family: var(--font-head); font-weight: 700; font-size: 1.05rem; min-width: 110px; text-align: center; }
 .whatif-result ul { font-size: 0.86rem; color: var(--ink-soft); }
 .whatif-result li { margin-bottom: 4px; }
+.whatif-sliders { display: flex; flex-direction: column; gap: 14px; margin-top: 10px; }
+.whatif-slider-row { display: flex; flex-direction: column; gap: 6px; }
+.whatif-slider-row .whatif-value { min-width: 0; text-align: left; font-size: 0.9rem; }
+.whatif-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.whatif-row-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; background: rgba(20,22,43,0.03); border-radius: var(--radius-sm); font-size: 0.85rem; flex-wrap: wrap; }
+.whatif-row-item__name { font-weight: 600; }
+.whatif-row-item__pct { color: var(--ink-faint); }
+.whatif-row-item__change { color: var(--aurora-violet); font-weight: 700; }
+
+.match-percent { font-size: 0.78rem; font-weight: 600; color: var(--ink-faint); }
+.badge--target { background: var(--aurora-gradient); color: #fff; margin-left: 8px; font-size: 0.68rem; padding: 3px 8px; }
+
+.doc-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(244,241,255,0.08); flex-wrap: wrap; }
+.doc-row:last-child { border-bottom: none; }
+.doc-row__label { color: var(--lavender); font-size: 0.88rem; flex: 1; min-width: 160px; }
+.doc-status-group { display: flex; gap: 6px; }
+.doc-status-chip { padding: 5px 12px; border-radius: var(--radius-pill); font-size: 0.76rem; background: rgba(244,241,255,0.06); color: var(--lavender-faint); border: 1px solid transparent; }
+.doc-status-chip--active.doc-status-chip--not_started { background: rgba(20,22,43,0.2); color: var(--lavender); }
+.doc-status-chip--active.doc-status-chip--in_progress { background: rgba(255,138,101,0.25); color: #FF8A65; }
+.doc-status-chip--active.doc-status-chip--done { background: rgba(47,217,196,0.25); color: var(--aurora-teal); }
 
 .category-note {
   font-size: 0.78rem;

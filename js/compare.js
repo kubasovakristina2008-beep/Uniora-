@@ -4,6 +4,7 @@
 
   var C = global.Uniora.common;
   var S = global.Uniora.state;
+  var M = global.Uniora.match;
   var D = global.Uniora.data;
   var el = C.el;
   var qs = C.qs;
@@ -16,20 +17,27 @@
 
   function boolText(v) { return v ? "Требуется" : "Не требуется"; }
 
-  function rowsFor(uni) {
+  function rowsFor(uni, profile) {
+    var evaluation = M.evaluateUniversity(uni, profile);
+    var subjects = M.relevantSubjectsForUni(uni, profile);
+    var subjectsText = subjects.length
+      ? subjects.map(function (s) { return s.label.replace(" (профильная)", "").replace(" (профильный)", "") + " от " + uni.subjects[s.key]; }).join(", ")
+      : "Не требуются для выбранной специальности";
+
     return [
       { label: "Город / страна", value: uni.city + ", " + C.countryLabel(uni.country) },
-      { label: "Специальности", value: uni.majors.map(C.majorLabel).join(", ") },
-      { label: "% поступления (прошлый цикл, ориентировочно)", value: Math.round(uni.acceptanceRate * 100) + "%" },
+      { label: "Программа", value: uni.majors.map(C.majorLabel).join(", ") },
+      { label: "Проходимость (прошлый цикл, ориентировочно)", value: Math.round(uni.acceptanceRate * 100) + "%" },
+      { label: "Совпадение с профилем", value: evaluation.matchPercent + "% · " + { match: "Match", reach: "Reach", safety: "Safety" }[evaluation.category] },
       { label: "Дедлайн ранний", value: uni.deadlineEarly || "Нет отдельного раунда" },
       { label: "Дедлайн основной", value: uni.deadlineMain + " · данные прошлого цикла" },
-      { label: "IELTS", value: reqText(uni.ielts) },
-      { label: "TOEFL", value: reqText(uni.toefl) },
-      { label: "SAT", value: reqText(uni.sat) },
+      { label: "Требование IELTS", value: reqText(uni.ielts) },
+      { label: "Профильные предметы", value: subjectsText },
+      { label: "Стипендия", value: uni.scholarship || "Нет данных" },
+      { label: "Общежитие", value: uni.dormitory || "Нет данных" },
       { label: "Рейтинг", value: "#" + uni.rankingCountry + " в стране / #" + uni.rankingWorld + " в мире (ориентировочно)" },
       { label: "Эссе", value: boolText(uni.essay) },
       { label: "Рекомендательные письма", value: uni.recommendationLetters },
-      { label: "Стоимость обучения", value: reqText(uni.tuition) },
       { label: "Сайт", value: uni.website, isLink: true }
     ];
   }
@@ -40,21 +48,33 @@
     return btn;
   }
 
-  function renderTable(root, unis) {
+  function targetBtn(uniId) {
+    var isTarget = S.getProfile().targetUniversityId === uniId;
+    var btn = el("button", { type: "button", class: "btn btn--sm " + (isTarget ? "btn--primary" : "btn--secondary") }, [isTarget ? "🎯 Цель" : "Сделать целью"]);
+    btn.addEventListener("click", function () {
+      S.updateProfile({ targetUniversityId: isTarget ? null : uniId });
+      C.toast(isTarget ? "Цель снята" : "Эта цель теперь ведёт ваш Roadmap");
+      render();
+    });
+    return btn;
+  }
+
+  function renderTable(root, unis, profile) {
     var table = el("table", { class: "compare-table" });
     var headRow = el("tr", {}, [el("th", {}, ["Параметр"])]);
     unis.forEach(function (u) {
-      headRow.appendChild(el("th", {}, [el("div", {}, [u.name]), removeBtn(u.id)]));
+      headRow.appendChild(el("th", {}, [el("div", {}, [u.name]), el("div", { class: "flex gap-1", style: "margin-top:6px;" }, [targetBtn(u.id), removeBtn(u.id)])]));
     });
     var thead = el("thead", {}, [headRow]);
     table.appendChild(thead);
 
-    var labelRows = rowsFor(unis[0]).map(function (r) { return r.label; });
+    var rowsPerUni = unis.map(function (u) { return rowsFor(u, profile); });
+    var labelRows = rowsPerUni[0].map(function (r) { return r.label; });
     var tbody = el("tbody");
     labelRows.forEach(function (label, i) {
       var tr = el("tr", {}, [el("td", { class: "row-label" }, [label])]);
-      unis.forEach(function (u) {
-        var r = rowsFor(u)[i];
+      rowsPerUni.forEach(function (rows) {
+        var r = rows[i];
         tr.appendChild(el("td", {}, [r.isLink ? el("a", { href: r.value, target: "_blank", rel: "noopener" }, ["Открыть сайт →"]) : r.value]));
       });
       tbody.appendChild(tr);
@@ -63,13 +83,13 @@
     root.appendChild(table);
   }
 
-  function renderCards(root, unis) {
+  function renderCards(root, unis, profile) {
     var wrap = el("div", { class: "compare-cards" });
     unis.forEach(function (u) {
       var card = el("div", { class: "card compare-card-item" }, [
-        el("div", { class: "flex items-center justify-between" }, [el("h3", { style: "margin:0;" }, [u.name]), removeBtn(u.id)])
+        el("div", { class: "flex items-center justify-between" }, [el("h3", { style: "margin:0;" }, [u.name]), el("div", { class: "flex gap-1" }, [targetBtn(u.id), removeBtn(u.id)])])
       ]);
-      rowsFor(u).forEach(function (r) {
+      rowsFor(u, profile).forEach(function (r) {
         card.appendChild(
           el("div", { class: "compare-card-item__row" }, [
             el("span", { class: "compare-card-item__row-label" }, [r.label]),
@@ -87,6 +107,7 @@
     root.innerHTML = "";
     var ids = S.getCompare();
     var unis = ids.map(function (id) { return D.UNIVERSITIES.filter(function (u) { return u.id === id; })[0]; }).filter(Boolean);
+    var profile = S.getProfile();
 
     if (unis.length === 0) {
       C.emptyState(root, {
@@ -106,14 +127,14 @@
           el("a", { class: "btn btn--primary", href: "recommendations.html" }, ["Добавить ещё вуз"])
         ])
       );
-      renderCards(root, unis);
+      renderCards(root, unis, profile);
       var mobileOnly = root.lastChild;
       mobileOnly.style.display = "flex";
       return;
     }
 
-    renderTable(root, unis);
-    renderCards(root, unis);
+    renderTable(root, unis, profile);
+    renderCards(root, unis, profile);
 
     root.appendChild(
       el("div", { class: "step-actions", style: "margin-top:28px;" }, [
