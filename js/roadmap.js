@@ -20,6 +20,13 @@
   var DOC_STATUS_LABEL = { not_started: "Не начато", in_progress: "В процессе", done: "Готово" };
   var DOC_STATUS_ORDER = ["not_started", "in_progress", "done"];
 
+  // Ключи TOEFL/SAT, у которых конкретно этот вуз указывает числовой порог
+  // (IELTS — отдельный шаг). Если ни одного числового требования нет —
+  // шаг честно закрывается сразу, показывать пробел не по чему.
+  function numericSecondaryExams(uni) {
+    return ["toefl", "sat"].filter(function (k) { return typeof uni[k] === "number"; });
+  }
+
   // ---------------- Шаги пути к целевому вузу ----------------
   function computeAutoStatus(autoKey, profile, targetUni) {
     if (autoKey === "anketa") return S.isProfileMinimal(profile) ? "done" : "todo";
@@ -27,11 +34,11 @@
       var e = profile.exams.ielts;
       return (e && !e.notTaken && typeof e.value === "number") ? "done" : "todo";
     }
-    if (autoKey === "subjects") {
-      var subs = M.relevantSubjectsForUni(targetUni, profile);
-      if (!subs.length) return "done";
-      return subs.every(function (s) {
-        var v = profile.exams.subjects[s.key];
+    if (autoKey === "otherExams") {
+      var keys = numericSecondaryExams(targetUni);
+      if (!keys.length) return "done";
+      return keys.every(function (k) {
+        var v = profile.exams[k];
         return v && !v.notTaken && typeof v.value === "number";
       }) ? "done" : "todo";
     }
@@ -46,11 +53,13 @@
     return null;
   }
 
+  var SECONDARY_EXAM_LABELS = { toefl: "TOEFL", sat: "SAT" };
+
   function buildJourneyDefs(profile, targetUni) {
-    var subs = M.relevantSubjectsForUni(targetUni, profile);
-    var subjectsDesc = subs.length
-      ? "Нужны: " + subs.map(function (s) { return s.label + " от " + targetUni.subjects[s.key]; }).join(", ") + "."
-      : "Для этой специальности в этом вузе профильные предметы не требуются.";
+    var otherKeys = numericSecondaryExams(targetUni);
+    var otherExamsDesc = otherKeys.length
+      ? "Нужны: " + otherKeys.map(function (k) { return SECONDARY_EXAM_LABELS[k] + " от " + targetUni[k]; }).join(", ") + "."
+      : "У этого вуза нет отдельных числовых порогов по TOEFL/SAT в источнике.";
 
     var submissionDeadline = targetUni.deadlineMain || targetUni.deadlineEarly || null;
     var deadlineText = submissionDeadline
@@ -67,7 +76,7 @@
           : "У этого вуза нет числового порога IELTS в источнике — добавьте балл в анкете на всякий случай, но ориентируйтесь на сайт вуза.",
         auto: "english"
       },
-      { id: "journey-subjects", icon: "📚", shortLabel: "Экзамены", title: "Профильные экзамены", description: subjectsDesc, auto: "subjects" },
+      { id: "journey-otherexams", icon: "📚", shortLabel: "TOEFL/SAT", title: "TOEFL / SAT", description: otherExamsDesc, auto: "otherExams" },
       { id: "journey-documents", icon: "📄", shortLabel: "Документы", title: "Сбор документов", description: "Транскрипт, рекомендательные письма и языковой сертификат — готовы (см. чек-лист ниже).", auto: "documents" },
       { id: "journey-motivation", icon: "✍️", shortLabel: "Письмо", title: "Мотивационное письмо", description: "Отметьте как готовое в чек-листе документов ниже.", auto: "motivation" },
       { id: "journey-submission", icon: "📮", shortLabel: "Подача", title: "Подача заявки", description: deadlineText, deadline: submissionDeadline },

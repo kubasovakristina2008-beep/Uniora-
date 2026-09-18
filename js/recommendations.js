@@ -147,6 +147,12 @@
 
   // --- Симулятор «Что если»: пересчитывает matchUniversities с подменёнными
   // профильными баллами, не сохраняя их в реальный профиль ---
+  var WHATIF_EXAMS = [
+    { key: "ielts", label: "IELTS", min: 0, max: 9, step: 0.5, decimals: 1, fallback: 6 },
+    { key: "toefl", label: "TOEFL", min: 0, max: 120, step: 1, decimals: 0, fallback: 80 },
+    { key: "sat", label: "SAT", min: 400, max: 1600, step: 10, decimals: 0, fallback: 1000 }
+  ];
+
   function renderWhatIf() {
     var mount = qs("#whatif-bar");
     if (!mount) return;
@@ -154,13 +160,10 @@
     var profile = S.getProfile();
     if (!profile.majors.length || (!profile.showAllCountries && profile.countries.length === 0)) return;
 
-    var subjects = D.subjectsForMajors(profile.majors);
-    if (!subjects.length) return;
-
     var simValues = {};
-    subjects.forEach(function (s) {
-      var current = profile.exams.subjects[s.key];
-      simValues[s.key] = (current && !current.notTaken && typeof current.value === "number") ? current.value : 50;
+    WHATIF_EXAMS.forEach(function (ex) {
+      var current = profile.exams[ex.key];
+      simValues[ex.key] = (current && !current.notTaken && typeof current.value === "number") ? current.value : ex.fallback;
     });
 
     var resultBox = el("div", { class: "whatif-result" });
@@ -168,8 +171,8 @@
 
     function recompute() {
       var clonedProfile = JSON.parse(JSON.stringify(profile));
-      subjects.forEach(function (s) {
-        clonedProfile.exams.subjects[s.key] = { value: simValues[s.key], notTaken: false };
+      WHATIF_EXAMS.forEach(function (ex) {
+        clonedProfile.exams[ex.key] = { value: simValues[ex.key], notTaken: false };
       });
       var before = M.matchUniversities(profile);
       var after = M.matchUniversities(clonedProfile);
@@ -200,12 +203,13 @@
     }
 
     var sliders = el("div", { class: "whatif-sliders" });
-    subjects.forEach(function (s) {
-      var display = el("span", { class: "whatif-value" }, [s.label + ": " + Math.round(simValues[s.key])]);
-      var range = el("input", { type: "range", min: "0", max: "100", step: "1", value: String(simValues[s.key]) });
+    WHATIF_EXAMS.forEach(function (ex) {
+      var fmt = function (v) { return ex.decimals > 0 ? v.toFixed(ex.decimals) : String(Math.round(v)); };
+      var display = el("span", { class: "whatif-value" }, [ex.label + ": " + fmt(simValues[ex.key])]);
+      var range = el("input", { type: "range", min: String(ex.min), max: String(ex.max), step: String(ex.step), value: String(simValues[ex.key]) });
       range.addEventListener("input", function () {
-        simValues[s.key] = parseFloat(range.value);
-        display.textContent = s.label + ": " + Math.round(simValues[s.key]);
+        simValues[ex.key] = parseFloat(range.value);
+        display.textContent = ex.label + ": " + fmt(simValues[ex.key]);
         recompute();
       });
       sliders.appendChild(el("div", { class: "whatif-slider-row" }, [display, range]));
@@ -213,7 +217,7 @@
     });
 
     var card = el("div", { class: "card whatif-card" }, [
-      el("div", { class: "field-label" }, ["Симулятор «Что если» — подвинь профильные баллы"]),
+      el("div", { class: "field-label" }, ["Симулятор «Что если» — подвинь баллы IELTS/TOEFL/SAT"]),
       el("p", { class: "muted", style: "margin-top:-6px;" }, ["Не сохраняет значения в профиль — только показывает, как изменились бы категории и процент совпадения."]),
       sliders,
       resultBox

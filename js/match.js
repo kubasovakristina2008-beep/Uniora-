@@ -19,45 +19,39 @@
     return profile.showAllCountries ? data.COUNTRIES.map(function (c) { return c.id; }) : (profile.countries || []);
   }
 
-  function relevantSubjectsForUni(uni, profile) {
-    // Пересечение специальностей, выбранных в анкете, со специальностями вуза —
-    // именно по ним показываем профильные предметы, а не по всем сразу.
-    var majors = (uni.majors || []).filter(function (m) { return (profile.majors || []).indexOf(m) !== -1; });
-    return data.subjectsForMajors(majors).filter(function (s) { return uni.subjects && (s.key in uni.subjects); });
-  }
+  var EXAM_KEYS = ["ielts", "toefl", "sat"];
+  var EXAM_LABELS = { ielts: "IELTS", toefl: "TOEFL", sat: "SAT" };
 
-  // Считает margin по IELTS и по релевантным профильным предметам, которые
-  // реально указаны у вуза и есть выбор специальности, пересекающийся с ним.
+  // Считает margin по IELTS/TOEFL/SAT — только по тем, где у вуза указан
+  // реальный числовой порог. Текстовые требования ("Опционально" и т.п.)
+  // идут в textFacts (факт без margin). Если порог числовой, а у абитуриента
+  // нет данных (не сдавал) — это честный сигнал "нет данных", не 0 и не штраф.
   function computeExamSignals(profile, uni) {
     var numericFacts = [];
+    var textFacts = [];
     var gapExams = [];
     var margins = [];
 
-    var ielts = profile.exams.ielts;
-    if (typeof uni.ielts === "number") {
-      if (ielts && !ielts.notTaken && typeof ielts.value === "number") {
-        var ieltsMargin = (ielts.value - uni.ielts) / uni.ielts;
-        margins.push(ieltsMargin);
-        numericFacts.push({ exam: "IELTS", userValue: ielts.value, required: uni.ielts, margin: ieltsMargin });
-      } else {
-        gapExams.push({ exam: "IELTS", required: uni.ielts });
+    EXAM_KEYS.forEach(function (key) {
+      var required = uni[key];
+      if (required === null || required === undefined) return;
+      var label = EXAM_LABELS[key];
+      if (typeof required === "string") {
+        textFacts.push({ exam: label, text: required });
+        return;
       }
-    }
-
-    relevantSubjectsForUni(uni, profile).forEach(function (subj) {
-      var required = uni.subjects[subj.key];
-      var userSubj = profile.exams.subjects[subj.key];
-      if (userSubj && !userSubj.notTaken && typeof userSubj.value === "number") {
-        var margin = (userSubj.value - required) / required;
+      var userExam = profile.exams[key];
+      if (userExam && !userExam.notTaken && typeof userExam.value === "number") {
+        var margin = (userExam.value - required) / required;
         margins.push(margin);
-        numericFacts.push({ exam: subj.label, userValue: userSubj.value, required: required, margin: margin });
+        numericFacts.push({ exam: label, userValue: userExam.value, required: required, margin: margin });
       } else {
-        gapExams.push({ exam: subj.label, required: required });
+        gapExams.push({ exam: label, required: required });
       }
     });
 
     var academicMargin = margins.length ? margins.reduce(function (a, b) { return a + b; }, 0) / margins.length : null;
-    return { academicMargin: academicMargin, numericFacts: numericFacts, gapExams: gapExams };
+    return { academicMargin: academicMargin, numericFacts: numericFacts, textFacts: textFacts, gapExams: gapExams };
   }
 
   // Пороги — эвристика Uniora, не официальная методология вуза.
@@ -102,6 +96,10 @@
       facts.push({ tone: tone, text: text });
     });
 
+    signals.textFacts.forEach(function (f) {
+      facts.push({ tone: "neutral", text: f.exam + ": " + f.text + "." });
+    });
+
     signals.gapExams.forEach(function (f) {
       facts.push({ tone: "gap", text: "Вуз указывает порог по «" + f.exam + "» (от " + fmtNum(f.required) + "), но в анкете нет данных — добавьте балл для более точной картины." });
     });
@@ -143,26 +141,28 @@
   }
 
   // --- Готовность к поступлению: 4 категории + общий процент ---
-  // Английский язык (IELTS 0–9 → 0–100), Профильные предметы (среднее по
-  // введённым предметным экзаменам, уже 0–100), Академическая успеваемость
-  // (GPA 0–5 → 0–100), Документы (доля готовых пунктов чек-листа).
+  // Английский язык (лучшее из IELTS 0–9 / TOEFL 0–120 → 0–100 — это два
+  // альтернативных теста одного и того же навыка, не суммируем их), SAT
+  // (400–1600 → 0–100), Академическая успеваемость (GPA 0–5 → 0–100),
+  // Документы (доля готовых пунктов чек-листа).
   function readinessCategories(profile) {
     var ielts = profile.exams.ielts;
-    var englishScore = (ielts && !ielts.notTaken && typeof ielts.value === "number")
-      ? clamp(Math.round((ielts.value / 9) * 100), 0, 100) : 0;
-
-    var subjectDefs = data.subjectsForMajors(profile.majors || []);
-    var subjectValues = subjectDefs
-      .map(function (s) { return profile.exams.subjects[s.key]; })
-      .filter(function (v) { return v && !v.notTaken && typeof v.value === "number"; })
-      .map(function (v) { return v.value; });
-    var subjectsScore = subjectValues.length
-      ? Math.round(subjectValues.reduce(function (a, b) { return a + b; }, 0) / subjectValues.length)
+    var ieltsScore = (ielts && !ielts.notTaken && typeof ielts.value === "number")
+      ? clamp(Math.round((ielts.value / 9) * 100), 0, 100) : null;
+    var toefl = profile.exams.toefl;
+    var toeflScore = (toefl && !toefl.notTaken && typeof toefl.value === "number")
+      ? clamp(Math.round((toefl.value / 120) * 100), 0, 100) : null;
+    var englishScore = ieltsScore !== null || toeflScore !== null
+      ? Math.max(ieltsScore !== null ? ieltsScore : 0, toeflScore !== null ? toeflScore : 0)
       : 0;
+
+    var sat = profile.exams.sat;
+    var satScore = (sat && !sat.notTaken && typeof sat.value === "number")
+      ? clamp(Math.round(((sat.value - 400) / (1600 - 400)) * 100), 0, 100) : null;
 
     var gpa = profile.exams.gpa;
     var academicScore = (gpa && !gpa.notTaken && typeof gpa.value === "number")
-      ? clamp(Math.round((gpa.value / 5) * 100), 0, 100) : 0;
+      ? clamp(Math.round((gpa.value / 5) * 100), 0, 100) : null;
 
     var docs = profile.documents || {};
     var docItems = data.DOCUMENT_ITEMS.filter(function (d) { return !d.onlyMajor || (profile.majors || []).indexOf(d.onlyMajor) !== -1; });
@@ -177,8 +177,8 @@
     var documentsScore = Math.round(docScoreRaw * 100);
 
     return [
-      { key: "english", label: "Английский язык", score: englishScore },
-      { key: "subjects", label: "Профильные предметы", score: subjectDefs.length ? subjectsScore : null },
+      { key: "english", label: "Английский язык (IELTS/TOEFL)", score: englishScore },
+      { key: "sat", label: "SAT", score: satScore },
       { key: "academic", label: "Академическая успеваемость (GPA)", score: academicScore },
       { key: "documents", label: "Документы", score: documentsScore }
     ];
@@ -205,18 +205,13 @@
   }
 
   function examsTakenSummary(profile) {
-    var subjectDefs = data.subjectsForMajors(profile.majors || []);
-    var total = 2 + subjectDefs.length; // IELTS + GPA + профильные
+    var keys = ["ielts", "toefl", "sat", "gpa"];
     var count = 0;
-    var ielts = profile.exams.ielts;
-    if (ielts && !ielts.notTaken && typeof ielts.value === "number") count++;
-    var gpa = profile.exams.gpa;
-    if (gpa && !gpa.notTaken && typeof gpa.value === "number") count++;
-    subjectDefs.forEach(function (s) {
-      var v = profile.exams.subjects[s.key];
-      if (v && !v.notTaken && typeof v.value === "number") count++;
+    keys.forEach(function (k) {
+      var e = profile.exams[k];
+      if (e && !e.notTaken && typeof e.value === "number") count++;
     });
-    return { count: count, total: total };
+    return { count: count, total: keys.length };
   }
 
   // --- Мини-профориентация ---
@@ -249,7 +244,6 @@
   global.Uniora = global.Uniora || {};
   global.Uniora.match = {
     effectiveCountries: effectiveCountries,
-    relevantSubjectsForUni: relevantSubjectsForUni,
     evaluateUniversity: evaluateUniversity,
     matchUniversities: matchUniversities,
     categorize: categorize,

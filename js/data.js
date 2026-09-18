@@ -28,57 +28,9 @@
   ];
 
   // ---------------------------------------------------------------------
-  // Профильные предметные экзамены по специальности. Шкала 0–100 у всех —
-  // это внутренняя шкала Uniora для сравнения с порогом вуза, не единый
-  // официальный экзамен уровня ЕГЭ/SAT.
-  // ---------------------------------------------------------------------
-  var SUBJECT_EXAMS_BY_MAJOR = {
-    it: [
-      { key: "math", label: "Математика (профильная)" },
-      { key: "computerScience", label: "Информатика (профильная)" }
-    ],
-    engineering: [
-      { key: "math", label: "Математика (профильная)" },
-      { key: "physics", label: "Физика (профильная)" }
-    ],
-    medicine: [
-      { key: "biology", label: "Биология (профильная)" },
-      { key: "chemistry", label: "Химия (профильная)" }
-    ],
-    business: [
-      { key: "math", label: "Математика (профильная)" },
-      { key: "economics", label: "Обществознание / экономика (профильная)" }
-    ],
-    intl_relations: [
-      { key: "history", label: "История (профильная)" },
-      { key: "secondLanguage", label: "Второй иностранный язык (профильный)" }
-    ],
-    arts: [
-      { key: "artHistory", label: "МХК / история искусств (профильная)" },
-      { key: "literature", label: "Литература (профильная)" }
-    ]
-  };
-  var SUBJECT_LABELS = {};
-  Object.keys(SUBJECT_EXAMS_BY_MAJOR).forEach(function (m) {
-    SUBJECT_EXAMS_BY_MAJOR[m].forEach(function (s) { SUBJECT_LABELS[s.key] = s.label; });
-  });
-
-  function subjectsForMajors(majorIds) {
-    var seen = {};
-    var list = [];
-    (majorIds || []).forEach(function (m) {
-      (SUBJECT_EXAMS_BY_MAJOR[m] || []).forEach(function (s) {
-        if (seen[s.key]) return;
-        seen[s.key] = true;
-        list.push(s);
-      });
-    });
-    return list;
-  }
-
-  // ---------------------------------------------------------------------
-  // Университеты. subjects — пороги по профильным предметам (см. выше),
-  // указаны только для специальностей, которые вуз реально предлагает.
+  // Университеты. Требования по экзаменам — ielts/toefl/sat: число (реальный
+  // порог), строка (вуз описывает требование не числом — «Опционально»,
+  // «Не указано» и т.п.) или null (требование не публикуется в источнике).
   // Стоимость обучения/жизни намеренно нигде не хранится и не показывается.
   // ---------------------------------------------------------------------
   var UNIVERSITIES = [
@@ -87,7 +39,7 @@
       country: "usa", city: "Кембридж", majors: ["it"],
       acceptanceRate: 0.073,
       deadlineEarly: null, deadlineMain: "5 января (прошлый цикл, Regular Action)",
-      ielts: 7.5, toefl: 100, sat: 1520, subjects: { math: 83, computerScience: 78 },
+      ielts: 7.5, toefl: 100, sat: 1520,
       essay: true, recommendationLetters: "2 письма от учителей + 1 от куратора",
       scholarship: "Need-based financial aid (need-blind для граждан США, need-aware для большинства международных)",
       dormitory: "Да, кампус",
@@ -100,7 +52,7 @@
       country: "usa", city: "Филадельфия", majors: ["business"],
       acceptanceRate: 0.09,
       deadlineEarly: "1 ноября (прошлый цикл, Early Decision)", deadlineMain: "5 января (прошлый цикл, Regular Decision)",
-      ielts: 7.0, toefl: null, sat: "Опционально", subjects: { math: 81, economics: 76 },
+      ielts: 7.0, toefl: null, sat: "Опционально",
       essay: true, recommendationLetters: "2 письма от учителей + школьная характеристика",
       scholarship: "Need-based financial aid (need-aware для международных студентов)",
       dormitory: "Да, кампус",
@@ -113,7 +65,7 @@
       country: "usa", city: "Сент-Луис", majors: ["intl_relations"],
       acceptanceRate: 0.16,
       deadlineEarly: "1 ноября (прошлый цикл, Early Decision I)", deadlineMain: "4 января (прошлый цикл, Regular Decision)",
-      ielts: 6.5, toefl: null, sat: "Опционально", subjects: { history: 74, secondLanguage: 69 },
+      ielts: 6.5, toefl: null, sat: "Опционально",
       essay: true, recommendationLetters: "1 от учителя, 1 от консультанта",
       scholarship: "Need-based financial aid (need-aware для международных студентов)",
       dormitory: "Да, кампус",
@@ -126,7 +78,7 @@
       country: "turkey", city: "Стамбул", majors: ["business"],
       acceptanceRate: 0.15,
       deadlineEarly: "7 сентября (прошлый цикл)", deadlineMain: "23 сентября (прошлый цикл, международный приём)",
-      ielts: null, toefl: 80, sat: 1180, subjects: { math: 75, economics: 70 },
+      ielts: null, toefl: 80, sat: 1180,
       essay: true, recommendationLetters: "1 письмо",
       scholarship: "Институциональные стипендии Koç (по конкурсу, покрытие частичное или полное)",
       dormitory: "Да, кампус",
@@ -139,7 +91,7 @@
       country: "turkey", city: "Стамбул", majors: ["arts"],
       acceptanceRate: 0.32,
       deadlineEarly: "1 июня (прошлый цикл)", deadlineMain: "26 июня (прошлый цикл, приём по YÖS)",
-      ielts: null, toefl: 65, sat: 600, subjects: { artHistory: 58, literature: 53 },
+      ielts: null, toefl: 65, sat: 600,
       essay: true, recommendationLetters: "Не требуются",
       scholarship: "Türkiye Bursları (для отдельных программ и стран)",
       dormitory: "Да, ограниченно",
@@ -152,7 +104,7 @@
       country: "turkey", city: "Анкара", majors: ["medicine"],
       acceptanceRate: 0.95,
       deadlineEarly: "22 сентября (прошлый цикл)", deadlineMain: "25 сентября (прошлый цикл, приём по YÖS)",
-      ielts: null, toefl: "Опционально", sat: "1000, опционально", subjects: { biology: 35, chemistry: 35 },
+      ielts: null, toefl: "Опционально", sat: "1000, опционально",
       essay: false, recommendationLetters: "Опционально",
       scholarship: null,
       dormitory: "Да, ограниченно",
@@ -165,7 +117,7 @@
       country: "italy", city: "Милан", majors: ["business"],
       acceptanceRate: 0.38,
       deadlineEarly: "1 мая (прошлый цикл, 1-й раунд)", deadlineMain: null,
-      ielts: 5.0, toefl: null, sat: 1040, subjects: { math: 52, economics: 47 },
+      ielts: 5.0, toefl: null, sat: 1040,
       essay: true, recommendationLetters: "Не менее 2 писем",
       scholarship: "Merit-based гранты Bocconi + региональные гранты DSU (по доходу семьи)",
       dormitory: "Да, ограниченно",
@@ -178,7 +130,7 @@
       country: "italy", city: "Болонья", majors: ["intl_relations"],
       acceptanceRate: 0.55,
       deadlineEarly: "15 марта (прошлый цикл)", deadlineMain: null,
-      ielts: 6.5, toefl: null, sat: "Не указано", subjects: { history: 35, secondLanguage: 35 },
+      ielts: 6.5, toefl: null, sat: "Не указано",
       essay: true, recommendationLetters: "Не менее 2 писем",
       scholarship: "Региональные гранты DSU (по доходу семьи)",
       dormitory: "Да, ограниченно",
@@ -191,7 +143,7 @@
       country: "italy", city: "Милан", majors: ["engineering", "arts"],
       acceptanceRate: 0.5,
       deadlineEarly: "26 марта (прошлый цикл)", deadlineMain: null,
-      ielts: 6.0, toefl: null, sat: "Не указано", subjects: { math: 40, physics: 35, artHistory: 40, literature: 35 },
+      ielts: 6.0, toefl: null, sat: "Не указано",
       essay: true, recommendationLetters: "Не менее 2 писем",
       scholarship: "Региональные гранты DSU + стипендии Politecnico по успеваемости",
       dormitory: "Да, ограниченно",
@@ -204,7 +156,7 @@
       country: "hungary", city: "Будапешт", majors: ["engineering"],
       acceptanceRate: 0.27,
       deadlineEarly: "15 июня (прошлый цикл)", deadlineMain: null,
-      ielts: 5.5, toefl: null, sat: "Не указано", subjects: { math: 63, physics: 58 },
+      ielts: 5.5, toefl: null, sat: "Не указано",
       essay: false, recommendationLetters: "Требуется рекомендательное письмо",
       scholarship: null,
       dormitory: "Да, кампус",
@@ -217,7 +169,7 @@
       country: "hungary", city: "Будапешт", majors: ["intl_relations"],
       acceptanceRate: 0.35,
       deadlineEarly: "15 марта (прошлый цикл)", deadlineMain: null,
-      ielts: 5.5, toefl: null, sat: "Не указано", subjects: { history: 55, secondLanguage: 50 },
+      ielts: 5.5, toefl: null, sat: "Не указано",
       essay: true, recommendationLetters: "Требуется рекомендательное письмо",
       scholarship: null,
       dormitory: "Да, кампус",
@@ -230,7 +182,7 @@
       country: "hungary", city: "Будапешт", majors: ["medicine"],
       acceptanceRate: 0.25,
       deadlineEarly: "31 мая (прошлый цикл)", deadlineMain: null,
-      ielts: null, toefl: "Не указано", sat: "Не указано", subjects: { biology: 65, chemistry: 60 },
+      ielts: null, toefl: "Не указано", sat: "Не указано",
       essay: true, recommendationLetters: "Требуется рекомендательное письмо",
       scholarship: null,
       dormitory: "Да, кампус",
@@ -243,7 +195,7 @@
       country: "china", city: "Пекин", majors: ["it"],
       acceptanceRate: 0.25,
       deadlineEarly: null, deadlineMain: "25 августа (прошлый цикл, для абитуриентов-иностранцев)",
-      ielts: null, toefl: "Требуется", sat: "Да", subjects: { math: 65, computerScience: 60 },
+      ielts: null, toefl: "Требуется", sat: "Да",
       essay: true, recommendationLetters: "Требуется",
       scholarship: "CSC grant (China Scholarship Council)",
       dormitory: "Да, кампус",
@@ -256,7 +208,7 @@
       country: "china", city: "Пекин", majors: ["medicine"],
       acceptanceRate: 0.15,
       deadlineEarly: null, deadlineMain: "30 августа (прошлый цикл)",
-      ielts: 6.5, toefl: 75, sat: "Да", subjects: { biology: 75, chemistry: 70 },
+      ielts: 6.5, toefl: 75, sat: "Да",
       essay: true, recommendationLetters: "Требуются 2 письма",
       scholarship: null,
       dormitory: "Да, ограниченно",
@@ -269,7 +221,7 @@
       country: "china", city: "Ханчжоу", majors: ["engineering"],
       acceptanceRate: 0.3,
       deadlineEarly: null, deadlineMain: "10 марта (прошлый цикл)",
-      ielts: null, toefl: "Требуется", sat: "Да", subjects: { math: 60, physics: 55 },
+      ielts: null, toefl: "Требуется", sat: "Да",
       essay: true, recommendationLetters: "Требуются 2 письма",
       scholarship: null,
       dormitory: "Да, ограниченно",
@@ -282,7 +234,7 @@
       country: "south_korea", city: "Тэджон", majors: ["engineering"],
       acceptanceRate: 0.18,
       deadlineEarly: "21 октября (прошлый цикл)", deadlineMain: "13 января (прошлый цикл, для иностранных абитуриентов)",
-      ielts: 6.5, toefl: 83, sat: "Да", subjects: { math: 72, physics: 67 },
+      ielts: 6.5, toefl: 83, sat: "Да",
       essay: false, recommendationLetters: "Только 1 письмо",
       scholarship: "GKS — Global Korea Scholarship + стипендии KAIST",
       dormitory: "Да, кампус",
@@ -295,7 +247,7 @@
       country: "south_korea", city: "Сеул", majors: ["arts"],
       acceptanceRate: 0.45,
       deadlineEarly: "19 марта (прошлый цикл)", deadlineMain: null,
-      ielts: 5.5, toefl: 80, sat: "Опционально", subjects: { artHistory: 45, literature: 40 },
+      ielts: 5.5, toefl: 80, sat: "Опционально",
       essay: true, recommendationLetters: "Не требуются",
       scholarship: null,
       dormitory: "Да, кампус",
@@ -308,7 +260,7 @@
       country: "south_korea", city: "Чонджу", majors: ["it"],
       acceptanceRate: 0.2,
       deadlineEarly: "1 апреля (прошлый цикл)", deadlineMain: "1 октября (прошлый цикл)",
-      ielts: 5.5, toefl: 80, sat: "Опционально", subjects: { math: 70, computerScience: 65 },
+      ielts: 5.5, toefl: 80, sat: "Опционально",
       essay: true, recommendationLetters: "Не требуется",
       scholarship: null,
       dormitory: "Да, кампус",
@@ -580,9 +532,6 @@
     DATA_NOTE: DATA_NOTE,
     MAJORS: MAJORS,
     COUNTRIES: COUNTRIES,
-    SUBJECT_EXAMS_BY_MAJOR: SUBJECT_EXAMS_BY_MAJOR,
-    SUBJECT_LABELS: SUBJECT_LABELS,
-    subjectsForMajors: subjectsForMajors,
     UNIVERSITIES: UNIVERSITIES,
     EVENTS: EVENTS,
     ACHIEVEMENT_CATEGORIES: ACHIEVEMENT_CATEGORIES,

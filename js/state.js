@@ -28,8 +28,9 @@
       },
       exams: {
         ielts: { value: null, notTaken: false },
-        gpa: { value: null, notTaken: false },
-        subjects: {}
+        toefl: { value: null, notTaken: false },
+        sat: { value: null, notTaken: false },
+        gpa: { value: null, notTaken: false }
       },
       documents: {},
       targetUniversityId: null,

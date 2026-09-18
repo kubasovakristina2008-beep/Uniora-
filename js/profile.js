@@ -330,7 +330,7 @@
   }
 
   function buildSliderField(container, opts) {
-    // opts: {label, min, max, step, decimals, info, getState, setValue, setNotTaken}
+    // opts: {label, min, max, step, decimals, maxText, info, extraNote, getState, setValue}
     var state = opts.getState();
     var wrap = el("div", { class: "slider-field" });
     var valueLabel = el("span", { class: "slider-field__value" + (state.notTaken || state.value === null ? " slider-field__value--muted" : "") }, [
@@ -353,7 +353,9 @@
       persist();
     });
     wrap.appendChild(slider);
+    wrap.appendChild(el("div", { class: "field-hint" }, ["Максимум: " + opts.maxText]));
     if (opts.info) wrap.appendChild(el("div", { class: "field-hint" }, [opts.info]));
+    if (opts.extraNote) wrap.appendChild(el("div", { class: "field-hint" }, [opts.extraNote]));
 
     var toggleRow = el("div", { class: "toggle-row" }, [
       el("span", { class: "muted" }, ["Ещё не сдавал(а)"]),
@@ -383,32 +385,33 @@
   }
 
   function renderStep5(container) {
-    heading(container, "Шаг 5 из 6", "Отметь свои баллы", "Двигай ползунки — мы сразу покажем, для каких вузов этого достаточно, а где стоит подтянуться.");
+    heading(container, "Шаг 5 из 6", "Отметь свои баллы", "Двигай ползунки — мы сразу покажем, для каких вузов этого достаточно, а где стоит подтянуться. Если экзамен ещё не сдавал(а) — просто отметь тумблер, он не будет учтён как 0.");
 
     buildSliderField(container, {
-      label: "IELTS Academic", min: 0, max: 9, step: 0.5, decimals: 1,
-      info: "Международный экзамен по английскому языку, шкала 0–9.",
+      label: "IELTS Academic", min: 0, max: 9, step: 0.5, decimals: 1, maxText: "9.0",
+      info: "Международный экзамен по английскому языку.",
       getState: function () { return draft.exams.ielts; },
       setValue: function (v, notTaken) { draft.exams.ielts.value = v; draft.exams.ielts.notTaken = notTaken; }
     });
 
-    var subjects = D.subjectsForMajors(draft.majors);
-    if (subjects.length) {
-      container.appendChild(el("div", { class: "field-label", style: "margin-top:8px;" }, ["Профильные предметы (по выбранным специальностям)"]));
-      subjects.forEach(function (s) {
-        if (!draft.exams.subjects[s.key]) draft.exams.subjects[s.key] = { value: null, notTaken: false };
-        buildSliderField(container, {
-          label: s.label, min: 0, max: 100, step: 1, decimals: 0,
-          info: "Внутренняя шкала Uniora 0–100 для сравнения с порогом вуза.",
-          getState: function () { return draft.exams.subjects[s.key]; },
-          setValue: function (v, notTaken) { draft.exams.subjects[s.key].value = v; draft.exams.subjects[s.key].notTaken = notTaken; }
-        });
-      });
-    }
+    buildSliderField(container, {
+      label: "TOEFL iBT", min: 0, max: 120, step: 1, decimals: 0, maxText: "120",
+      info: "Альтернатива IELTS — тоже международный экзамен по английскому языку, шкала другая.",
+      getState: function () { return draft.exams.toefl; },
+      setValue: function (v, notTaken) { draft.exams.toefl.value = v; draft.exams.toefl.notTaken = notTaken; }
+    });
 
     buildSliderField(container, {
-      label: "Средний балл аттестата (GPA)", min: 0, max: 5, step: 0.1, decimals: 1,
+      label: "SAT", min: 400, max: 1600, step: 10, decimals: 0, maxText: "1600",
+      info: "Стандартизированный тест для поступления в вузы США (и ряда других стран).",
+      getState: function () { return draft.exams.sat; },
+      setValue: function (v, notTaken) { draft.exams.sat.value = v; draft.exams.sat.notTaken = notTaken; }
+    });
+
+    buildSliderField(container, {
+      label: "Средний балл аттестата (GPA)", min: 0, max: 5, step: 0.1, decimals: 1, maxText: "5.0",
       info: "Средний балл школьного аттестата по 5-балльной шкале.",
+      extraNote: "Это ориентир, а не универсальный стандарт — разные вузы переводят GPA по-разному.",
       getState: function () { return draft.exams.gpa; },
       setValue: function (v, notTaken) { draft.exams.gpa.value = v; draft.exams.gpa.notTaken = notTaken; }
     });

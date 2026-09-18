@@ -19,10 +19,6 @@
 
   function rowsFor(uni, profile) {
     var evaluation = M.evaluateUniversity(uni, profile);
-    var subjects = M.relevantSubjectsForUni(uni, profile);
-    var subjectsText = subjects.length
-      ? subjects.map(function (s) { return s.label.replace(" (профильная)", "").replace(" (профильный)", "") + " от " + uni.subjects[s.key]; }).join(", ")
-      : "Не требуются для выбранной специальности";
 
     return [
       { label: "Город / страна", value: uni.city + ", " + C.countryLabel(uni.country) },
@@ -32,7 +28,8 @@
       { label: "Дедлайн ранний", value: uni.deadlineEarly || "Нет отдельного раунда" },
       { label: "Дедлайн основной", value: uni.deadlineMain + " · данные прошлого цикла" },
       { label: "Требование IELTS", value: reqText(uni.ielts) },
-      { label: "Профильные предметы", value: subjectsText },
+      { label: "Требование TOEFL", value: reqText(uni.toefl) },
+      { label: "Требование SAT", value: reqText(uni.sat) },
       { label: "Стипендия", value: uni.scholarship || "Нет данных" },
       { label: "Общежитие", value: uni.dormitory || "Нет данных" },
       { label: "Рейтинг", value: "#" + uni.rankingCountry + " в стране / #" + uni.rankingWorld + " в мире (ориентировочно)" },
