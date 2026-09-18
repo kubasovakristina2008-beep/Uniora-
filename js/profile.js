@@ -328,6 +328,15 @@
   function renderVolunteeringRecords(body, opts) {
     var list = el("div", { class: "record-list" });
     body.appendChild(list);
+    var emptyMsg = el("p", { class: "muted", style: "margin:0 0 10px;" }, ["Пока не добавлено ни одного пункта."]);
+
+    function refreshEmptyState() {
+      if (opts.getList().length === 0) {
+        if (!emptyMsg.parentNode) body.insertBefore(emptyMsg, list);
+      } else if (emptyMsg.parentNode) {
+        emptyMsg.parentNode.removeChild(emptyMsg);
+      }
+    }
 
     function addRow(record) {
       var card = el("div", { class: "record-card" });
@@ -366,6 +375,7 @@
         var idx = arr.indexOf(record);
         if (idx >= 0) arr.splice(idx, 1);
         list.removeChild(card);
+        refreshEmptyState();
         persist();
         opts.onChange();
       });
@@ -374,12 +384,14 @@
     }
 
     opts.getList().forEach(addRow);
+    refreshEmptyState();
 
     var addBtn = el("button", { type: "button", class: "btn btn--secondary btn--sm" }, ["+ Добавить запись"]);
     addBtn.addEventListener("click", function () {
       var record = { place: "", sphere: null, hours: null, description: "" };
       opts.getList().push(record);
       addRow(record);
+      refreshEmptyState();
       persist();
       opts.onChange();
     });
