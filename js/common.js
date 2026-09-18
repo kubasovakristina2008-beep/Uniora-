@@ -47,7 +47,18 @@
   function majorLabel(id) { var m = getMajor(id); return m ? tf(m.label) : "—"; }
   function majorsLabel(ids) { return (ids && ids.length) ? ids.map(majorLabel).join(", ") : t("common.notSpecified"); }
   function countryLabel(id) { var c = getCountry(id); return c ? tf(c.label) : id; }
-  function countryFlag(id) { var c = getCountry(id); return c ? c.flag : ""; }
+  // Флаг как картинка (не emoji) — на Windows составные emoji-флаги часто
+  // рендерятся как голые буквы кода страны из-за отсутствия глифа в шрифте.
+  function countryFlagImg(id) {
+    var c = getCountry(id);
+    if (!c || !c.flagCode) return null;
+    return el("img", {
+      src: "https://flagcdn.com/24x18/" + c.flagCode + ".png",
+      srcset: "https://flagcdn.com/48x36/" + c.flagCode + ".png 2x",
+      width: "24", height: "18",
+      alt: "", class: "flag-icon"
+    });
+  }
 
   function renderLangSwitch() {
     var current = i18n.getLang();
@@ -124,7 +135,7 @@
       chips.appendChild(el("span", { class: "chip chip--static" }, [t("common.allCountries")]));
     } else if (profile.countries && profile.countries.length) {
       profile.countries.forEach(function (c) {
-        chips.appendChild(el("span", { class: "chip chip--static" }, [countryLabel(c) + " " + countryFlag(c)]));
+        chips.appendChild(el("span", { class: "chip chip--static" }, [countryFlagImg(c), countryLabel(c)]));
       });
     }
 
@@ -278,7 +289,7 @@
     majorLabel: majorLabel,
     majorsLabel: majorsLabel,
     countryLabel: countryLabel,
-    countryFlag: countryFlag,
+    countryFlagImg: countryFlagImg,
     renderNav: renderNav,
     renderContextBar: renderContextBar,
     emptyState: emptyState,

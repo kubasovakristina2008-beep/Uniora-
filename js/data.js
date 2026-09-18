@@ -22,13 +22,16 @@
     { id: "arts", label: { ru: "Искусство", en: "Arts" }, sub: { ru: "Архитектура, графика, мода", en: "Architecture, design, fashion" }, icon: "🎨" }
   ];
 
+  // flagCode — ISO 3166-1 alpha-2, используется для картинки флага
+  // (flagcdn.com). Emoji-флаги на Windows часто рендерятся как голые буквы
+  // (нет составных глифов в системном шрифте), поэтому картинка надёжнее.
   var COUNTRIES = [
-    { id: "china", label: { ru: "Китай", en: "China" }, flag: "🇨🇳" },
-    { id: "hungary", label: { ru: "Венгрия", en: "Hungary" }, flag: "🇭🇺" },
-    { id: "south_korea", label: { ru: "Южная Корея", en: "South Korea" }, flag: "🇰🇷" },
-    { id: "usa", label: { ru: "США", en: "USA" }, flag: "🇺🇸" },
-    { id: "turkey", label: { ru: "Турция", en: "Turkey" }, flag: "🇹🇷" },
-    { id: "italy", label: { ru: "Италия", en: "Italy" }, flag: "🇮🇹" }
+    { id: "china", label: { ru: "Китай", en: "China" }, flagCode: "cn" },
+    { id: "hungary", label: { ru: "Венгрия", en: "Hungary" }, flagCode: "hu" },
+    { id: "south_korea", label: { ru: "Южная Корея", en: "South Korea" }, flagCode: "kr" },
+    { id: "usa", label: { ru: "США", en: "USA" }, flagCode: "us" },
+    { id: "turkey", label: { ru: "Турция", en: "Turkey" }, flagCode: "tr" },
+    { id: "italy", label: { ru: "Италия", en: "Italy" }, flagCode: "it" }
   ];
 
   // ---------------------------------------------------------------------

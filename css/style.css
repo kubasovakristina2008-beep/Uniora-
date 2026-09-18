@@ -440,6 +440,15 @@ section.page-section--tight { padding: var(--space-3) 0; }
 }
 .option-card__icon { font-size: 1.5rem; }
 .option-card__title { font-weight: 700; }
+.flag-icon {
+  display: inline-block;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  vertical-align: -4px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(20, 22, 43, 0.08);
+  margin-right: 6px;
+}
 .option-card__sub { font-size: 0.82rem; color: var(--ink-faint); }
 
 .step-actions {

@@ -53,7 +53,7 @@
           { type: "button", class: "option-card" + (selected ? " option-card--selected" : ""), onclick: function () { onClick(opt); } },
           [
             opt.icon ? el("div", { class: "option-card__icon" }, [opt.icon]) : null,
-            el("div", { class: "option-card__title" }, [opt.title]),
+            el("div", { class: "option-card__title" }, opt.titleNodes || [opt.title]),
             opt.sub ? el("div", { class: "option-card__sub" }, [opt.sub]) : null
           ]
         )
@@ -185,7 +185,7 @@
   // ---------------- Step 3 — страны ----------------
   function renderStep3(container) {
     heading(container, t("profile.step3Eyebrow"), t("profile.step3Title"), t("profile.step3Subtitle"));
-    var options = D.COUNTRIES.map(function (c) { return { id: c.id, title: tf(c.label) + " " + c.flag }; });
+    var options = D.COUNTRIES.map(function (c) { return { id: c.id, titleNodes: [C.countryFlagImg(c.id), tf(c.label)] }; });
     var grid = el("div", { id: "country-grid" });
     container.appendChild(grid);
 
