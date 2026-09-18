@@ -30,7 +30,7 @@
       { label: t("compare.acceptanceRate"), value: Math.round(uni.acceptanceRate * 100) + "%" },
       { label: t("compare.profileMatch"), value: evaluation.matchPercent + "% · " + categoryLabel },
       { label: t("compare.deadlineEarly"), value: uni.deadlineEarly ? tf(uni.deadlineEarly) : t("compare.noSeparateRound") },
-      { label: t("compare.deadlineMain"), value: tf(uni.deadlineMain) + " · " + t("compare.lastCycleData") },
+      { label: t("compare.deadlineMain"), value: tf(uni.deadlineMain) },
       { label: t("compare.reqIelts"), value: reqText(uni.ielts) },
       { label: t("compare.reqToefl"), value: reqText(uni.toefl) },
       { label: t("compare.reqSat"), value: reqText(uni.sat) },
@@ -106,6 +106,7 @@
   function render() {
     var root = qs("#compare-root");
     root.innerHTML = "";
+    C.renderDemoBadge(root);
     var ids = S.getCompare();
     var unis = ids.map(function (id) { return D.UNIVERSITIES.filter(function (u) { return u.id === id; })[0]; }).filter(Boolean);
     var profile = S.getProfile();

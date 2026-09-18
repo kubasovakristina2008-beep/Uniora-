@@ -99,13 +99,12 @@
           el("div", { class: "uni-card__place" }, [C.countryFlagImg(uni.country), tf(uni.city) + ", " + C.countryLabel(uni.country)])
         ]),
         el("div", { class: "flex-col", style: "align-items:flex-end;gap:4px;" }, [
-          el("span", { class: "badge badge--" + match.category }, [CATEGORY_LABEL[match.category]]),
-          el("span", { class: "match-percent" }, [match.matchPercent + t("recommendations.matchPercentSuffix")])
+          el("span", { class: "badge badge--" + match.category }, [CATEGORY_LABEL[match.category]])
         ])
       ]),
       el("div", { class: "uni-card__facts" }, factRows),
       el("div", { class: "uni-card__facts", style: "border-top:1px solid rgba(20,22,43,0.06);padding-top:8px;" }, [
-        el("div", {}, ["📅 " + deadlineParts.join(" · ") + " " + t("recommendations.deadlineNote")]),
+        el("div", {}, ["📅 " + deadlineParts.join(" · ")]),
         el("div", {}, ["🏆 " + t("recommendations.ranking", { country: uni.rankingCountry, world: uni.rankingWorld })]),
         el("div", {}, ["🎓 " + t("recommendations.scholarship") + " " + (uni.scholarship ? tf(uni.scholarship) : t("compare.noData"))]),
         el("div", {}, ["🏠 " + t("recommendations.dormitory") + " " + tf(uni.dormitory)]),
@@ -257,6 +256,7 @@
     renderWhatIf();
     var root = qs("#recommendations-root");
     root.innerHTML = "";
+    C.renderDemoBadge(root);
     var profile = S.getProfile();
 
     if (!profile.majors.length) {

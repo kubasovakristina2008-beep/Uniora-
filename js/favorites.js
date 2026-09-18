@@ -15,6 +15,7 @@
   function render() {
     var root = qs("#favorites-root");
     root.innerHTML = "";
+    C.renderDemoBadge(root);
     var ids = S.getFavorites();
 
     if (!ids.length) {

@@ -407,23 +407,6 @@
     body.appendChild(addBtn);
   }
 
-  function renderTip(body, tip) {
-    var open = false;
-    var content = el("div", { class: "field-hint", style: "margin-top:8px;display:none;" }, [
-      el("div", {}, [tf(tip.intro)]),
-      el("ul", { style: "margin:6px 0 0;padding-left:18px;" }, tf(tip.items).map(function (item) {
-        return el("li", { style: "margin-bottom:4px;" }, [item]);
-      }))
-    ]);
-    var toggle = el("button", { type: "button", class: "btn btn--ghost btn--sm", style: "margin-top:8px;" }, ["💡 " + tf(tip.title)]);
-    toggle.addEventListener("click", function () {
-      open = !open;
-      content.style.display = open ? "block" : "none";
-    });
-    body.appendChild(toggle);
-    body.appendChild(content);
-  }
-
   function renderAchievementCategory(root, cat, isFirst) {
     if (cat.variant === "sport") {
       renderSportCategory(root, cat);
@@ -448,7 +431,7 @@
       placeholderB: tf(cat.placeholderB),
       onChange: function () { updateMeta(cat.key); }
     });
-    if (cat.tip) renderTip(body, cat.tip);
+    if (cat.tip) C.renderTip(body, cat.tip);
     if (isFirst) qs("#acc-" + cat.key).classList.add("accordion-section--open");
   }
 

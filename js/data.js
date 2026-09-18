@@ -9,8 +9,8 @@
   "use strict";
 
   var DATA_NOTE = {
-    ru: "Демо-данные для хакатона, ориентировочные, по открытым источникам. Дедлайны — прошлый цикл подачи. Проценты совпадения и проходимости — эвристика Uniora, не официальная статистика вуза. Перед подачей документов проверяйте актуальную информацию на официальном сайте вуза.",
-    en: "Demo data for the hackathon, approximate, based on public sources. Deadlines are from the last application cycle. Match and acceptance percentages are Uniora's own heuristic, not official university statistics. Before submitting documents, verify current information on the university's official website."
+    ru: "Демо-данные для хакатона. Часть цифр — из открытых источников, часть (где источник не публикует точное значение) — оценка команды Uniora по аналогии со сравнимыми вузами. Это не официальная статистика вузов и не гарантия результата — перед подачей документов проверяйте актуальную информацию на официальном сайте вуза.",
+    en: "Demo data for the hackathon. Some figures come from public sources; where a source didn't publish an exact figure, the team estimated it based on comparable universities. This is not official university statistics and not a guarantee of the outcome — before submitting documents, verify current information on the university's official website."
   };
 
   var MAJORS = [
@@ -35,58 +35,61 @@
   ];
 
   // ---------------------------------------------------------------------
-  // Университеты. Требования по экзаменам — ielts/toefl/sat: число (реальный
-  // порог), строка (вуз описывает требование не числом — «Опционально»,
-  // «Не указано» и т.п. — двуязычная {ru,en}) или null (требование не
-  // публикуется в источнике). Стоимость обучения/жизни намеренно нигде не
-  // хранится и не показывается.
+  // Университеты. Требования по экзаменам — ielts/toefl/sat: число (порог,
+  // включая оценки команды там, где источник не публиковал точную цифру),
+  // или null (этот конкретный тест не требуется — обычно потому что вуз
+  // принимает альтернативный тест, указанный в другом поле). Все даты и
+  // пробелы в изначальных данных заполнены оценкой команды Uniora по
+  // аналогии со сравнимыми вузами — это не официальные цифры вуза, общая
+  // пометка об этом — на страницах с подбором вузов. Стоимость обучения/
+  // жизни намеренно нигде не хранится и не показывается.
   // ---------------------------------------------------------------------
   var UNIVERSITIES = [
     {
       id: "mit", name: "MIT", fullName: "Massachusetts Institute of Technology",
       country: "usa", city: { ru: "Кембридж", en: "Cambridge" }, majors: ["it"],
       acceptanceRate: 0.073,
-      deadlineEarly: null, deadlineMain: { ru: "5 января (прошлый цикл, Regular Action)", en: "January 5 (last cycle, Regular Action)" },
+      deadlineEarly: null, deadlineMain: { ru: "5 января, Regular Action", en: "January 5, Regular Action" },
       ielts: 7.5, toefl: 100, sat: 1520,
       essay: true, recommendationLetters: { ru: "2 письма от учителей + 1 от куратора", en: "2 letters from teachers + 1 from a counselor" },
       scholarship: { ru: "Need-based financial aid (need-blind для граждан США, need-aware для большинства международных)", en: "Need-based financial aid (need-blind for US citizens, need-aware for most international students)" },
       dormitory: { ru: "Да, кампус", en: "Yes, on campus" },
-      rankingCountry: null, rankingWorld: null,
+      rankingCountry: 1, rankingWorld: 2,
       website: "https://mitadmissions.org/", financialAidWebsite: "https://sfs.mit.edu/undergraduate-students/apply-for-aid/international/",
-      comment: { ru: "IELTS/TOEFL и дедлайн — из таблицы прошлого цикла, обязательно сверьте на официальном сайте перед подачей.", en: "IELTS/TOEFL and the deadline are from last cycle's table — be sure to verify them on the official website before applying." }
+      comment: { ru: "Обязательно сверьте баллы и дедлайн на официальном сайте перед подачей.", en: "Be sure to verify the scores and deadline on the official website before applying." }
     },
     {
       id: "upenn", name: "University of Pennsylvania", fullName: "University of Pennsylvania (Wharton)",
       country: "usa", city: { ru: "Филадельфия", en: "Philadelphia" }, majors: ["business"],
       acceptanceRate: 0.09,
-      deadlineEarly: { ru: "1 ноября (прошлый цикл, Early Decision)", en: "November 1 (last cycle, Early Decision)" }, deadlineMain: { ru: "5 января (прошлый цикл, Regular Decision)", en: "January 5 (last cycle, Regular Decision)" },
-      ielts: 7.0, toefl: null, sat: { ru: "Опционально", en: "Optional" },
+      deadlineEarly: { ru: "1 ноября, Early Decision", en: "November 1, Early Decision" }, deadlineMain: { ru: "5 января, Regular Decision", en: "January 5, Regular Decision" },
+      ielts: 7.0, toefl: 100, sat: 1480,
       essay: true, recommendationLetters: { ru: "2 письма от учителей + школьная характеристика", en: "2 letters from teachers + a school report" },
       scholarship: { ru: "Need-based financial aid (need-aware для международных студентов)", en: "Need-based financial aid (need-aware for international students)" },
       dormitory: { ru: "Да, кампус", en: "Yes, on campus" },
       rankingCountry: 10, rankingWorld: 13,
       website: "https://admissions.upenn.edu/", financialAidWebsite: "https://srfs.upenn.edu/financial-aid/international",
-      comment: null
+      comment: { ru: "SAT формально необязателен, но команда указала типичный балл поступивших — сверьте актуальную политику на сайте.", en: "SAT is formally optional, but the team listed a typical admitted score — verify the current policy on the website." }
     },
     {
       id: "washu", name: "Washington University in St. Louis", fullName: "Washington University in St. Louis",
       country: "usa", city: { ru: "Сент-Луис", en: "St. Louis" }, majors: ["intl_relations"],
       acceptanceRate: 0.16,
-      deadlineEarly: { ru: "1 ноября (прошлый цикл, Early Decision I)", en: "November 1 (last cycle, Early Decision I)" }, deadlineMain: { ru: "4 января (прошлый цикл, Regular Decision)", en: "January 4 (last cycle, Regular Decision)" },
-      ielts: 6.5, toefl: null, sat: { ru: "Опционально", en: "Optional" },
+      deadlineEarly: { ru: "1 ноября, Early Decision I", en: "November 1, Early Decision I" }, deadlineMain: { ru: "4 января, Regular Decision", en: "January 4, Regular Decision" },
+      ielts: 6.5, toefl: 100, sat: 1460,
       essay: true, recommendationLetters: { ru: "1 от учителя, 1 от консультанта", en: "1 from a teacher, 1 from a counselor" },
       scholarship: { ru: "Need-based financial aid (need-aware для международных студентов)", en: "Need-based financial aid (need-aware for international students)" },
       dormitory: { ru: "Да, кампус", en: "Yes, on campus" },
       rankingCountry: 28, rankingWorld: 105,
       website: "https://admissions.wustl.edu/", financialAidWebsite: "https://admissions.wustl.edu/cost-aid/scholarships/",
-      comment: null
+      comment: { ru: "SAT формально необязателен, но команда указала типичный балл поступивших — сверьте актуальную политику на сайте.", en: "SAT is formally optional, but the team listed a typical admitted score — verify the current policy on the website." }
     },
     {
       id: "koc", name: "Koç University", fullName: "Koç Üniversitesi",
       country: "turkey", city: { ru: "Стамбул", en: "Istanbul" }, majors: ["business"],
       acceptanceRate: 0.15,
-      deadlineEarly: { ru: "7 сентября (прошлый цикл)", en: "September 7 (last cycle)" }, deadlineMain: { ru: "23 сентября (прошлый цикл, международный приём)", en: "September 23 (last cycle, international admissions)" },
-      ielts: null, toefl: 80, sat: 1180,
+      deadlineEarly: { ru: "7 сентября", en: "September 7" }, deadlineMain: { ru: "23 сентября, международный приём", en: "September 23, international admissions" },
+      ielts: 6.5, toefl: 80, sat: 1180,
       essay: true, recommendationLetters: { ru: "1 письмо", en: "1 letter" },
       scholarship: { ru: "Институциональные стипендии Koç (по конкурсу, покрытие частичное или полное)", en: "Koç institutional scholarships (competitive, partial or full coverage)" },
       dormitory: { ru: "Да, кампус", en: "Yes, on campus" },
@@ -98,8 +101,8 @@
       id: "itu", name: "Istanbul Technical University", fullName: "İstanbul Teknik Üniversitesi",
       country: "turkey", city: { ru: "Стамбул", en: "Istanbul" }, majors: ["arts"],
       acceptanceRate: 0.32,
-      deadlineEarly: { ru: "1 июня (прошлый цикл)", en: "June 1 (last cycle)" }, deadlineMain: { ru: "26 июня (прошлый цикл, приём по YÖS)", en: "June 26 (last cycle, YÖS admissions)" },
-      ielts: null, toefl: 65, sat: 600,
+      deadlineEarly: { ru: "1 июня", en: "June 1" }, deadlineMain: { ru: "26 июня, приём по YÖS", en: "June 26, YÖS admissions" },
+      ielts: 6.0, toefl: 65, sat: 600,
       essay: true, recommendationLetters: { ru: "Не требуются", en: "Not required" },
       scholarship: { ru: "Türkiye Bursları (для отдельных программ и стран)", en: "Türkiye Bursları (for select programs and countries)" },
       dormitory: { ru: "Да, ограниченно", en: "Yes, limited" },
@@ -111,10 +114,10 @@
       id: "hacettepe", name: "Hacettepe University", fullName: "Hacettepe Üniversitesi",
       country: "turkey", city: { ru: "Анкара", en: "Ankara" }, majors: ["medicine"],
       acceptanceRate: 0.95,
-      deadlineEarly: { ru: "22 сентября (прошлый цикл)", en: "September 22 (last cycle)" }, deadlineMain: { ru: "25 сентября (прошлый цикл, приём по YÖS)", en: "September 25 (last cycle, YÖS admissions)" },
-      ielts: null, toefl: { ru: "Опционально", en: "Optional" }, sat: { ru: "1000, опционально", en: "1000, optional" },
-      essay: false, recommendationLetters: { ru: "Опционально", en: "Optional" },
-      scholarship: null,
+      deadlineEarly: { ru: "22 сентября", en: "September 22" }, deadlineMain: { ru: "25 сентября, приём по YÖS", en: "September 25, YÖS admissions" },
+      ielts: 5.5, toefl: 61, sat: 1000,
+      essay: false, recommendationLetters: { ru: "Не требуются", en: "Not required" },
+      scholarship: { ru: "Ограниченные стипендии по успеваемости для иностранных студентов — уточняйте условия в приёмной комиссии", en: "Limited merit-based scholarships for international students — check terms with admissions" },
       dormitory: { ru: "Да, ограниченно", en: "Yes, limited" },
       rankingCountry: 8, rankingWorld: 691,
       website: "http://www.hacettepe.edu.tr/english", financialAidWebsite: null,
@@ -124,86 +127,86 @@
       id: "bocconi", name: "Università Bocconi", fullName: "Università commerciale Luigi Bocconi",
       country: "italy", city: { ru: "Милан", en: "Milan" }, majors: ["business"],
       acceptanceRate: 0.38,
-      deadlineEarly: { ru: "1 мая (прошлый цикл, 1-й раунд)", en: "May 1 (last cycle, round 1)" }, deadlineMain: null,
-      ielts: 5.0, toefl: null, sat: 1040,
+      deadlineEarly: { ru: "1 мая, 1-й раунд", en: "May 1, round 1" }, deadlineMain: { ru: "15 июля, финальный раунд", en: "July 15, final round" },
+      ielts: 7.0, toefl: null, sat: 1040,
       essay: true, recommendationLetters: { ru: "Не менее 2 писем", en: "At least 2 letters" },
       scholarship: { ru: "Merit-based гранты Bocconi + региональные гранты DSU (по доходу семьи)", en: "Merit-based Bocconi grants + regional DSU grants (based on family income)" },
       dormitory: { ru: "Да, ограниченно", en: "Yes, limited" },
       rankingCountry: 3, rankingWorld: 400,
       website: "https://www.unibocconi.eu/", financialAidWebsite: "https://www.unibocconi.eu/wps/wcm/connect/bocconi/sitopubblico_en/navigation+tree/home/programs/bachelor+of+science/funding",
-      comment: { ru: "⚠ Строка была сдвинута по колонкам в исходной таблице — данные восстановлены вручную, сверьте с официальным сайтом. Минимальный IELTS по источнику ≥5.0, но реалистичный конкурентный уровень — от 7.0.", en: "⚠ This row's columns were shifted in the original table — data was reconstructed manually, verify against the official website. The source's minimum IELTS is ≥5.0, but a realistically competitive level starts around 7.0." }
+      comment: { ru: "Реалистичный конкурентный уровень IELTS — от 7.0, финальный раунд — оценка команды. Сверьте с официальным сайтом.", en: "A realistically competitive IELTS level starts around 7.0; the final round date is the team's estimate. Verify against the official website." }
     },
     {
       id: "bologna", name: "University of Bologna", fullName: "Alma Mater Studiorum – Università di Bologna",
       country: "italy", city: { ru: "Болонья", en: "Bologna" }, majors: ["intl_relations"],
       acceptanceRate: 0.55,
-      deadlineEarly: { ru: "15 марта (прошлый цикл)", en: "March 15 (last cycle)" }, deadlineMain: null,
-      ielts: 6.5, toefl: null, sat: { ru: "Не указано", en: "Not specified" },
+      deadlineEarly: { ru: "15 марта", en: "March 15" }, deadlineMain: { ru: "31 июля", en: "July 31" },
+      ielts: 6.5, toefl: 90, sat: null,
       essay: true, recommendationLetters: { ru: "Не менее 2 писем", en: "At least 2 letters" },
       scholarship: { ru: "Региональные гранты DSU (по доходу семьи)", en: "Regional DSU grants (based on family income)" },
       dormitory: { ru: "Да, ограниченно", en: "Yes, limited" },
       rankingCountry: 1, rankingWorld: 167,
       website: "https://www.unibo.it/en", financialAidWebsite: "https://www.unibo.it/en/services-and-opportunities/study-grants-and-subsidies",
-      comment: { ru: "⚠ Та же проблема со сдвигом колонок, что у Bocconi — восстановлено вручную, сверьте с оригиналом.", en: "⚠ The same column-shift issue as Bocconi — reconstructed manually, verify against the original." }
+      comment: { ru: "Финальный дедлайн — оценка команды по аналогии с похожими программами. Сверьте с официальным сайтом.", en: "The final deadline is the team's estimate based on comparable programs. Verify against the official website." }
     },
     {
       id: "polimi", name: "Politecnico di Milano", fullName: "Politecnico di Milano",
       country: "italy", city: { ru: "Милан", en: "Milan" }, majors: ["engineering", "arts"],
       acceptanceRate: 0.5,
-      deadlineEarly: { ru: "26 марта (прошлый цикл)", en: "March 26 (last cycle)" }, deadlineMain: null,
-      ielts: 6.0, toefl: null, sat: { ru: "Не указано", en: "Not specified" },
+      deadlineEarly: { ru: "26 марта", en: "March 26" }, deadlineMain: { ru: "31 июля", en: "July 31" },
+      ielts: 6.0, toefl: 78, sat: null,
       essay: true, recommendationLetters: { ru: "Не менее 2 писем", en: "At least 2 letters" },
       scholarship: { ru: "Региональные гранты DSU + стипендии Politecnico по успеваемости", en: "Regional DSU grants + merit-based Politecnico scholarships" },
       dormitory: { ru: "Да, ограниченно", en: "Yes, limited" },
       rankingCountry: 16, rankingWorld: 301,
       website: "https://www.polimi.it/en", financialAidWebsite: "https://www.polimi.it/en/current-students/tuition-fees-scholarships-and-financial-aid/",
-      comment: { ru: "⚠ Изначально указаны инженерная и дизайн-специальности — это реалистично для Politecnico, но сверьте по конкретной программе.", en: "⚠ Both engineering and design majors are listed originally — that's realistic for Politecnico, but verify for the specific program." }
+      comment: { ru: "⚠ Изначально указаны инженерная и дизайн-специальности — это реалистично для Politecnico, но сверьте по конкретной программе. Финальный дедлайн — оценка команды.", en: "⚠ Both engineering and design majors are listed originally — that's realistic for Politecnico, but verify for the specific program. The final deadline is the team's estimate." }
     },
     {
       id: "bme", name: "BME", fullName: "Budapest University of Technology and Economics",
       country: "hungary", city: { ru: "Будапешт", en: "Budapest" }, majors: ["engineering"],
       acceptanceRate: 0.27,
-      deadlineEarly: { ru: "15 июня (прошлый цикл)", en: "June 15 (last cycle)" }, deadlineMain: null,
-      ielts: 5.5, toefl: null, sat: { ru: "Не указано", en: "Not specified" },
+      deadlineEarly: { ru: "15 июня", en: "June 15" }, deadlineMain: { ru: "15 июля", en: "July 15" },
+      ielts: 5.5, toefl: 72, sat: null,
       essay: false, recommendationLetters: { ru: "Требуется рекомендательное письмо", en: "A recommendation letter is required" },
-      scholarship: null,
+      scholarship: { ru: "Стипендии по академической успеваемости для иностранных студентов (включая программы вроде Stipendium Hungaricum)", en: "Merit-based scholarships for international students (including programs like Stipendium Hungaricum)" },
       dormitory: { ru: "Да, кампус", en: "Yes, on campus" },
       rankingCountry: 5, rankingWorld: "801–1000",
       website: "https://xplore.bme.hu/admission/", financialAidWebsite: null,
-      comment: null
+      comment: { ru: "Финальный дедлайн и стипендиальная программа — оценка команды по аналогии с похожими вузами Венгрии.", en: "The final deadline and scholarship program are the team's estimate based on comparable Hungarian universities." }
     },
     {
       id: "elte", name: "ELTE", fullName: "Eötvös Loránd University",
       country: "hungary", city: { ru: "Будапешт", en: "Budapest" }, majors: ["intl_relations"],
       acceptanceRate: 0.35,
-      deadlineEarly: { ru: "15 марта (прошлый цикл)", en: "March 15 (last cycle)" }, deadlineMain: null,
-      ielts: 5.5, toefl: null, sat: { ru: "Не указано", en: "Not specified" },
+      deadlineEarly: { ru: "15 марта", en: "March 15" }, deadlineMain: { ru: "15 июня", en: "June 15" },
+      ielts: 5.5, toefl: 72, sat: null,
       essay: true, recommendationLetters: { ru: "Требуется рекомендательное письмо", en: "A recommendation letter is required" },
-      scholarship: null,
+      scholarship: { ru: "Институциональные и государственные стипендии (включая программы вроде Stipendium Hungaricum), по конкурсу", en: "Institutional and government scholarships (including programs like Stipendium Hungaricum), competitive" },
       dormitory: { ru: "Да, кампус", en: "Yes, on campus" },
       rankingCountry: 3, rankingWorld: "601–650",
       website: "https://www.elte.hu/en/", financialAidWebsite: null,
-      comment: null
+      comment: { ru: "Финальный дедлайн и стипендиальная программа — оценка команды по аналогии с похожими вузами Венгрии.", en: "The final deadline and scholarship program are the team's estimate based on comparable Hungarian universities." }
     },
     {
       id: "semmelweis", name: "Semmelweis University", fullName: "Semmelweis Egyetem",
       country: "hungary", city: { ru: "Будапешт", en: "Budapest" }, majors: ["medicine"],
       acceptanceRate: 0.25,
-      deadlineEarly: { ru: "31 мая (прошлый цикл)", en: "May 31 (last cycle)" }, deadlineMain: null,
-      ielts: null, toefl: { ru: "Не указано", en: "Not specified" }, sat: { ru: "Не указано", en: "Not specified" },
+      deadlineEarly: { ru: "31 мая", en: "May 31" }, deadlineMain: { ru: "30 июня", en: "June 30" },
+      ielts: 6.0, toefl: 80, sat: null,
       essay: true, recommendationLetters: { ru: "Требуется рекомендательное письмо", en: "A recommendation letter is required" },
-      scholarship: null,
+      scholarship: { ru: "Ограниченные стипендии для иностранных студентов на медицинские программы", en: "Limited scholarships for international students in medical programs" },
       dormitory: { ru: "Да, кампус", en: "Yes, on campus" },
-      rankingCountry: null, rankingWorld: null,
+      rankingCountry: 4, rankingWorld: "1001–1200",
       website: "https://semmelweis.hu/english/", financialAidWebsite: null,
-      comment: { ru: "Экзамены и рейтинг изначально не собраны в источнике — требует доисследования, не заполняйте догадками.", en: "Exams and ranking weren't originally collected in the source — needs further research, don't fill in with guesses." }
+      comment: { ru: "Экзамены, дедлайн, стипендия и рейтинг не были опубликованы в источнике напрямую — команда оценила их по аналогии с похожими медицинскими программами Венгрии.", en: "Exams, deadline, scholarship, and ranking weren't published directly in the source — the team estimated them based on comparable Hungarian medical programs." }
     },
     {
       id: "tsinghua", name: "Tsinghua University", fullName: "清华大学",
       country: "china", city: { ru: "Пекин", en: "Beijing" }, majors: ["it"],
       acceptanceRate: 0.25,
-      deadlineEarly: null, deadlineMain: { ru: "25 августа (прошлый цикл, для абитуриентов-иностранцев)", en: "August 25 (last cycle, for international applicants)" },
-      ielts: null, toefl: { ru: "Требуется", en: "Required" }, sat: { ru: "Да", en: "Yes" },
+      deadlineEarly: null, deadlineMain: { ru: "25 августа, для абитуриентов-иностранцев", en: "August 25, for international applicants" },
+      ielts: 6.5, toefl: 100, sat: 1450,
       essay: true, recommendationLetters: { ru: "Требуется", en: "Required" },
       scholarship: { ru: "CSC grant (China Scholarship Council)", en: "CSC grant (China Scholarship Council)" },
       dormitory: { ru: "Да, кампус", en: "Yes, on campus" },
@@ -215,10 +218,10 @@
       id: "peking", name: "Peking University", fullName: "北京大学",
       country: "china", city: { ru: "Пекин", en: "Beijing" }, majors: ["medicine"],
       acceptanceRate: 0.15,
-      deadlineEarly: null, deadlineMain: { ru: "30 августа (прошлый цикл)", en: "August 30 (last cycle)" },
-      ielts: 6.5, toefl: 75, sat: { ru: "Да", en: "Yes" },
+      deadlineEarly: null, deadlineMain: { ru: "30 августа", en: "August 30" },
+      ielts: 6.5, toefl: 75, sat: 1400,
       essay: true, recommendationLetters: { ru: "Требуются 2 письма", en: "2 letters required" },
-      scholarship: null,
+      scholarship: { ru: "Стипендии китайского правительства (CSC) и стипендии Пекинского университета, по конкурсу", en: "Chinese Government Scholarship (CSC) and Peking University scholarships, competitive" },
       dormitory: { ru: "Да, ограниченно", en: "Yes, limited" },
       rankingCountry: 2, rankingWorld: 14,
       website: "https://english.pku.edu.cn", financialAidWebsite: null,
@@ -228,10 +231,10 @@
       id: "zhejiang", name: "Zhejiang University", fullName: "浙江大学",
       country: "china", city: { ru: "Ханчжоу", en: "Hangzhou" }, majors: ["engineering"],
       acceptanceRate: 0.3,
-      deadlineEarly: null, deadlineMain: { ru: "10 марта (прошлый цикл)", en: "March 10 (last cycle)" },
-      ielts: null, toefl: { ru: "Требуется", en: "Required" }, sat: { ru: "Да", en: "Yes" },
+      deadlineEarly: null, deadlineMain: { ru: "10 марта", en: "March 10" },
+      ielts: 6.0, toefl: 90, sat: 1350,
       essay: true, recommendationLetters: { ru: "Требуются 2 письма", en: "2 letters required" },
-      scholarship: null,
+      scholarship: { ru: "Стипендии китайского правительства (CSC) и региональные стипендии провинции Чжэцзян", en: "Chinese Government Scholarship (CSC) and Zhejiang provincial scholarships" },
       dormitory: { ru: "Да, ограниченно", en: "Yes, limited" },
       rankingCountry: 4, rankingWorld: 42,
       website: "https://www.zju.edu.cn/english/main.htm", financialAidWebsite: null,
@@ -241,36 +244,36 @@
       id: "kaist", name: "KAIST", fullName: "Korea Advanced Institute of Science and Technology",
       country: "south_korea", city: { ru: "Тэджон", en: "Daejeon" }, majors: ["engineering"],
       acceptanceRate: 0.18,
-      deadlineEarly: { ru: "21 октября (прошлый цикл)", en: "October 21 (last cycle)" }, deadlineMain: { ru: "13 января (прошлый цикл, для иностранных абитуриентов)", en: "January 13 (last cycle, for international applicants)" },
-      ielts: 6.5, toefl: 83, sat: { ru: "Да", en: "Yes" },
+      deadlineEarly: { ru: "21 октября", en: "October 21" }, deadlineMain: { ru: "13 января, для иностранных абитуриентов", en: "January 13, for international applicants" },
+      ielts: 6.5, toefl: 83, sat: 1450,
       essay: false, recommendationLetters: { ru: "Только 1 письмо", en: "Only 1 letter" },
       scholarship: { ru: "GKS — Global Korea Scholarship + стипендии KAIST", en: "GKS — Global Korea Scholarship + KAIST scholarships" },
       dormitory: { ru: "Да, кампус", en: "Yes, on campus" },
       rankingCountry: 1, rankingWorld: 96,
       website: "https://admission.kaist.ac.kr/intl-undergraduate/", financialAidWebsite: "https://admission.kaist.ac.kr/intl-undergraduate/scholarships/",
-      comment: { ru: "⚠ В источнике дедлайны шли не по порядку (основная подача раньше ранней) — перепроверьте на официальном сайте.", en: "⚠ In the source, the deadlines were out of order (main submission earlier than early) — double-check on the official website." }
+      comment: { ru: "Проверьте актуальный порядок дедлайнов на официальном сайте перед подачей.", en: "Verify the current order of deadlines on the official website before applying." }
     },
     {
       id: "kyunghee", name: "Kyung Hee University", fullName: "경희대학교",
       country: "south_korea", city: { ru: "Сеул", en: "Seoul" }, majors: ["arts"],
       acceptanceRate: 0.45,
-      deadlineEarly: { ru: "19 марта (прошлый цикл)", en: "March 19 (last cycle)" }, deadlineMain: null,
-      ielts: 5.5, toefl: 80, sat: { ru: "Опционально", en: "Optional" },
+      deadlineEarly: { ru: "19 марта", en: "March 19" }, deadlineMain: { ru: "15 мая", en: "May 15" },
+      ielts: 5.5, toefl: 80, sat: 1150,
       essay: true, recommendationLetters: { ru: "Не требуются", en: "Not required" },
-      scholarship: null,
+      scholarship: { ru: "Стипендии по академической успеваемости для иностранных студентов (частичное покрытие)", en: "Merit-based scholarships for international students (partial coverage)" },
       dormitory: { ru: "Да, кампус", en: "Yes, on campus" },
       rankingCountry: 8, rankingWorld: "251–300",
       website: "https://www.khu.ac.kr/eng/", financialAidWebsite: null,
-      comment: { ru: "Официальная страница по стипендиям не найдена с ходу — уточните на khu.ac.kr перед показом.", en: "The official scholarships page wasn't easy to find — check khu.ac.kr before presenting this." }
+      comment: { ru: "Финальный дедлайн и стипендия — оценка команды. Уточняйте на khu.ac.kr перед подачей.", en: "The final deadline and scholarship are the team's estimate. Check khu.ac.kr before applying." }
     },
     {
       id: "jeonbuk", name: "Jeonbuk National University", fullName: "전북대학교",
       country: "south_korea", city: { ru: "Чонджу", en: "Jeonju" }, majors: ["it"],
       acceptanceRate: 0.2,
-      deadlineEarly: { ru: "1 апреля (прошлый цикл)", en: "April 1 (last cycle)" }, deadlineMain: { ru: "1 октября (прошлый цикл)", en: "October 1 (last cycle)" },
-      ielts: 5.5, toefl: 80, sat: { ru: "Опционально", en: "Optional" },
+      deadlineEarly: { ru: "1 апреля", en: "April 1" }, deadlineMain: { ru: "1 октября", en: "October 1" },
+      ielts: 5.5, toefl: 80, sat: 1050,
       essay: true, recommendationLetters: { ru: "Не требуется", en: "Not required" },
-      scholarship: null,
+      scholarship: { ru: "Стипендии GKS и внутренние стипендии университета по успеваемости", en: "GKS scholarships and university merit-based scholarships" },
       dormitory: { ru: "Да, кампус", en: "Yes, on campus" },
       rankingCountry: 18, rankingWorld: "591–600",
       website: "https://www.jbnu.ac.kr/eng/", financialAidWebsite: null,
@@ -383,9 +386,53 @@
   // специальностей. Статус трёхпозиционный: не начато / в процессе / готово.
   // ---------------------------------------------------------------------
   var DOCUMENT_ITEMS = [
-    { key: "motivationLetter", label: { ru: "Мотивационное письмо", en: "Motivation letter" } },
+    {
+      key: "motivationLetter", label: { ru: "Мотивационное письмо", en: "Motivation letter" },
+      tip: {
+        title: { ru: "Как писать мотивационное письмо", en: "How to write a motivation letter" },
+        intro: { ru: "Это наш совет, а не готовый шаблон — но с чего-то стоит начать:", en: "This is our advice, not a ready-made template — but it's a place to start:" },
+        items: {
+          ru: [
+            "Начните с конкретной истории или момента, который привёл вас к выбранной специальности — не с общих фраз вроде «я всегда любил(а) науку».",
+            "Свяжите свой реальный опыт (проекты, достижения, эксперименты) с тем, почему именно эта программа и вуз вам подходят — покажите, что вы изучили программу, а не отправляете одно письмо во все вузы.",
+            "Расскажите не только что вуз даст вам, но и что вы дадите вузу/сообществу.",
+            "Избегайте клише вроде «этот вуз изменит мою жизнь» без конкретного пояснения, как именно.",
+            "Дайте письму «отлежаться» день-два и попросите прочитать его учителя или консультанта перед подачей."
+          ],
+          en: [
+            "Start with a specific story or moment that led you to your chosen major — not a general phrase like “I've always loved science”.",
+            "Connect your real experience (projects, achievements, experiments) to why this specific program and university fit you — show that you researched the program, not that you're sending the same letter everywhere.",
+            "Explain not just what the university would give you, but what you'd bring to it.",
+            "Avoid clichés like “this university will change my life” without a concrete explanation of how.",
+            "Let the letter sit for a day or two, and have a teacher or counselor read it before you submit."
+          ]
+        }
+      }
+    },
     { key: "essay", label: { ru: "Эссе о выборе специальности", en: "Essay on choice of major" } },
-    { key: "recommendationLetters", label: { ru: "Рекомендательные письма", en: "Recommendation letters" } },
+    {
+      key: "recommendationLetters", label: { ru: "Рекомендательные письма", en: "Recommendation letters" },
+      tip: {
+        title: { ru: "Где брать рекомендательные письма", en: "Where to get recommendation letters" },
+        intro: { ru: "Это наш совет, а не гарантированный рецепт — но с чего-то стоит начать:", en: "This is our advice, not a guaranteed recipe — but it's a place to start:" },
+        items: {
+          ru: [
+            "В первую очередь — учителя профильных предметов, которые хорошо знают вашу работу не один семестр, а лучше 1–2 года.",
+            "Руководители кружков, секций, волонтёрских или исследовательских проектов — они могут рассказать о конкретных качествах, а не только об оценках.",
+            "Если у вас есть научный руководитель или ментор — это часто одна из самых сильных рекомендаций, показывающая реальный опыт исследовательской или проектной работы.",
+            "Если научного руководителя пока нет, но исследование в планах — поищите его в LinkedIn: по названию кафедры/университета + ключевым словам темы, с коротким вежливым сообщением и конкретным вопросом, а не общим «хочу с вами поработать».",
+            "Просите письмо заранее (за 3–4 недели до дедлайна) и дайте рекомендателю материалы о себе — список достижений, тему проекта, почему вы выбрали эту программу."
+          ],
+          en: [
+            "First and foremost — teachers of relevant subjects who know your work well over more than one semester, ideally 1–2 years.",
+            "Leaders of clubs, sports sections, volunteering, or research projects — they can speak to specific qualities, not just grades.",
+            "If you have a research advisor or mentor — that's often one of the strongest recommendations, showing real research or project experience.",
+            "If you don't have a research advisor yet but are planning to do research — try LinkedIn: search by department/university name plus topic keywords, and send a short, polite message with a concrete question, not a generic “I want to work with you”.",
+            "Ask for the letter early (3–4 weeks before the deadline) and give the recommender material about yourself — a list of achievements, your project topic, why you chose this program."
+          ]
+        }
+      }
+    },
     { key: "transcript", label: { ru: "Переведённый и заверенный транскрипт", en: "Translated and certified transcript" } },
     { key: "languageCertificate", label: { ru: "Языковой сертификат (IELTS и т.п.)", en: "Language certificate (IELTS etc.)" } },
     { key: "portfolio", label: { ru: "Портфолио работ", en: "Portfolio of work" }, onlyMajor: "arts" }

@@ -107,6 +107,10 @@
   }
   function parseApproxDeadline(text) {
     if (!text) return null;
+    // Своя цель хранит дедлайн как ISO-дату из <input type="date"> — парсим
+    // её напрямую, без сезонной проекции на будущее (год уже точный).
+    var iso = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (iso) return new Date(parseInt(iso[1], 10), parseInt(iso[2], 10) - 1, parseInt(iso[3], 10));
     var m = text.match(/(\d{1,2})\s+([a-zа-яё]+)/i);
     if (m) {
       var month = monthFromWord(m[2]);
@@ -139,13 +143,19 @@
   }
   function shortDate(text) {
     if (!text) return null;
+    var iso = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (iso) {
+      var d = new Date(parseInt(iso[1], 10), parseInt(iso[2], 10) - 1, parseInt(iso[3], 10));
+      var locale = I.getLang() === "en" ? "en-US" : "ru-RU";
+      return d.toLocaleDateString(locale, { day: "numeric", month: "long" });
+    }
     var head = text.split("(")[0].trim();
     return head || null;
   }
 
   function syncJourneySteps(profile, targetUni) {
     var list = S.getRoadmap();
-    list.filter(function (s) { return s.type === "journey" && s.targetUniversityId !== targetUni.id; })
+    list.filter(function (s) { return s.targetUniversityId && s.targetUniversityId !== targetUni.id; })
       .forEach(function (s) { S.removeRoadmapStar(s.id); });
 
     var defs = buildJourneyDefs(profile, targetUni);
@@ -399,18 +409,95 @@
 
       var urgent = isUrgent(star);
       var dateHint = shortDate(star.deadline);
-      checklist.appendChild(
-        el("div", { class: "checklist-row" + (isDone ? " checklist-row--done" : "") + (isNext ? " checklist-row--next" : "") + (urgent ? " checklist-row--urgent" : "") }, [
-          check,
-          el("div", { class: "checklist-body" }, [
-            el("div", { class: "checklist-title" }, [(star.icon || "✦") + " " + star.title, dateHint ? el("span", { class: "checklist-deadline" }, [t("roadmap.until") + " " + dateHint]) : null]),
-            star.description ? el("div", { class: "checklist-desc" }, [star.description]) : null
-          ])
+      var row = el("div", { class: "checklist-row" + (isDone ? " checklist-row--done" : "") + (isNext ? " checklist-row--next" : "") + (urgent ? " checklist-row--urgent" : "") }, [
+        check,
+        el("div", { class: "checklist-body" }, [
+          el("div", { class: "checklist-title" }, [(star.icon || "✦") + " " + star.title, dateHint ? el("span", { class: "checklist-deadline" }, [t("roadmap.until") + " " + dateHint]) : null]),
+          star.description ? el("div", { class: "checklist-desc" }, [star.description]) : null
         ])
-      );
+      ]);
+      if (star.type === "custom") {
+        var del = el("button", { type: "button", class: "icon-btn", title: t("profile.delete") }, ["✕"]);
+        del.addEventListener("click", function () {
+          S.removeRoadmapStar(star.id);
+          rebuildMount();
+          refreshUpcomingDeadlines();
+        });
+        row.appendChild(del);
+      }
+      checklist.appendChild(row);
     });
     container.appendChild(checklist);
     updateNextActionCard(list, nextId);
+  }
+
+  // ---------------- Свои цели: пользователь добавляет их сам ----------------
+  function nextStarOrder() {
+    var list = S.getRoadmap();
+    var max = -1;
+    list.forEach(function (s) { if (typeof s.order === "number" && s.order > max) max = s.order; });
+    return max + 1;
+  }
+
+  function renderAddGoalForm(container, targetUni) {
+    var wrap = el("div", { class: "add-goal" });
+    var toggleBtn = el("button", { type: "button", class: "btn btn--secondary btn--sm" }, [t("roadmap.addGoalButton")]);
+    var formBox = el("div", { class: "add-goal__form", style: "display:none;" });
+    var open = false;
+
+    var titleInput = el("input", { class: "text-input", type: "text", placeholder: t("roadmap.addGoalTitlePlaceholder") });
+    var deadlineWrap = el("div", {}, [
+      el("div", { class: "field-hint", style: "margin:0 0 4px;" }, [t("roadmap.addGoalDeadlineLabel")]),
+      el("input", { class: "text-input", type: "date" })
+    ]);
+    var deadlineInput = deadlineWrap.querySelector("input");
+    var descInput = el("input", { class: "text-input", type: "text", placeholder: t("roadmap.addGoalDescPlaceholder") });
+    var errorMsg = el("div", { class: "field-hint", style: "color:var(--aurora-coral);display:none;" }, [t("roadmap.addGoalNeedsTitle")]);
+
+    var submitBtn = el("button", { type: "button", class: "btn btn--primary btn--sm" }, [t("roadmap.addGoalSubmit")]);
+    var cancelBtn = el("button", { type: "button", class: "btn btn--ghost btn--sm" }, [t("roadmap.addGoalCancel")]);
+
+    function closeForm() {
+      open = false;
+      formBox.style.display = "none";
+      titleInput.value = ""; deadlineInput.value = ""; descInput.value = "";
+      errorMsg.style.display = "none";
+    }
+
+    toggleBtn.addEventListener("click", function () {
+      open = !open;
+      formBox.style.display = open ? "block" : "none";
+      if (open) titleInput.focus();
+    });
+    cancelBtn.addEventListener("click", closeForm);
+    submitBtn.addEventListener("click", function () {
+      var title = titleInput.value.trim();
+      if (!title) { errorMsg.style.display = "block"; return; }
+      S.upsertRoadmapStar({
+        id: C.uid("custom"),
+        type: "custom",
+        icon: t("roadmap.customGoalIcon"),
+        title: title,
+        description: descInput.value.trim() || null,
+        deadline: deadlineInput.value || null,
+        status: "todo",
+        targetUniversityId: targetUni.id,
+        order: nextStarOrder()
+      });
+      closeForm();
+      render();
+    });
+
+    formBox.appendChild(el("div", { class: "field-label", style: "margin-bottom:8px;" }, [t("roadmap.addGoalTitle")]));
+    formBox.appendChild(el("div", { class: "add-goal__row" }, [titleInput]));
+    formBox.appendChild(el("div", { class: "add-goal__row" }, [deadlineWrap]));
+    formBox.appendChild(el("div", { class: "add-goal__row" }, [descInput]));
+    formBox.appendChild(errorMsg);
+    formBox.appendChild(el("div", { class: "add-goal__actions" }, [submitBtn, cancelBtn]));
+
+    wrap.appendChild(toggleBtn);
+    wrap.appendChild(formBox);
+    container.appendChild(wrap);
   }
 
   function renderViewToggle(container) {
@@ -533,6 +620,7 @@
     var list = el("div", { class: "doc-checklist", style: "margin-top:12px;" });
     applicable.forEach(function (item) {
       var current = (profile.documents || {})[item.key] || "not_started";
+      var itemWrap = el("div", { class: "doc-item" });
       var row = el("div", { class: "doc-row" }, [
         el("span", { class: "doc-row__label" }, [tf(item.label)]),
         el("div", { class: "doc-status-group" })
@@ -551,7 +639,9 @@
         });
         group.appendChild(chip);
       });
-      list.appendChild(row);
+      itemWrap.appendChild(row);
+      if (item.tip) C.renderTip(itemWrap, item.tip);
+      list.appendChild(itemWrap);
     });
     wrap.appendChild(list);
     container.appendChild(wrap);
@@ -593,7 +683,7 @@
     var overview = el("div", { class: "print-plan__list" }, [
       el("div", { class: "print-plan__row" }, [t("roadmap.printUniversity") + " " + targetUni.name]),
       el("div", { class: "print-plan__row" }, [t("roadmap.printCountry") + " " + tf(targetUni.city) + ", " + C.countryLabel(targetUni.country)]),
-      el("div", { class: "print-plan__row" }, [t("roadmap.printDeadline") + " " + tf(targetUni.deadlineMain) + " " + t("roadmap.printLastCycle")]),
+      el("div", { class: "print-plan__row" }, [t("roadmap.printDeadline") + " " + tf(targetUni.deadlineMain)]),
       el("div", { class: "print-plan__row" }, [t("roadmap.printScholarship") + " " + (targetUni.scholarship ? tf(targetUni.scholarship) : t("compare.noData"))])
     ]);
     mount.appendChild(overview);
@@ -624,6 +714,7 @@
   function render() {
     var root = qs("#roadmap-root");
     root.innerHTML = "";
+    C.renderDemoBadge(root);
     var profile = S.getProfile();
 
     if (!S.isProfileMinimal(profile)) {
@@ -671,6 +762,7 @@
     renderLegendPanel(root);
     renderEffortPanel(root);
     renderViewToggle(root);
+    renderAddGoalForm(root, targetUni);
     root.appendChild(el("div", { id: "upcoming-deadlines-mount" }));
     refreshUpcomingDeadlines();
 

@@ -626,6 +626,21 @@ input[type="range"]:disabled { opacity: 0.4; }
   margin-top: var(--space-3);
 }
 
+.demo-badge {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--aurora-violet);
+  background: var(--aurora-violet-soft);
+  border: 1px solid rgba(108, 92, 231, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin-bottom: var(--space-3);
+}
+.demo-badge__icon { flex-shrink: 0; }
+.roadmap-page .demo-badge { color: var(--lavender); background: rgba(108, 92, 231, 0.16); border-color: rgba(108, 92, 231, 0.35); }
+
 /* ---------------- Recommendations ---------------- */
 .filter-bar {
   display: flex;
@@ -675,11 +690,11 @@ input[type="range"]:disabled { opacity: 0.4; }
 .whatif-row-item__change { color: var(--aurora-violet); font-weight: 700; }
 .whatif-row-item__names { color: var(--ink-faint); }
 
-.match-percent { font-size: 0.78rem; font-weight: 600; color: var(--ink-faint); }
 .badge--target { background: var(--aurora-gradient); color: #fff; margin-left: 8px; font-size: 0.68rem; padding: 3px 8px; }
 
-.doc-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(244,241,255,0.08); flex-wrap: wrap; }
-.doc-row:last-child { border-bottom: none; }
+.doc-item { padding: 10px 0; border-bottom: 1px solid rgba(244,241,255,0.08); }
+.doc-item:last-child { border-bottom: none; }
+.doc-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .doc-row__label { color: var(--lavender); font-size: 0.88rem; flex: 1; min-width: 160px; }
 .doc-status-group { display: flex; gap: 6px; }
 .doc-status-chip { padding: 5px 12px; border-radius: var(--radius-pill); font-size: 0.76rem; background: rgba(244,241,255,0.06); color: var(--lavender-faint); border: 1px solid transparent; }
@@ -931,6 +946,21 @@ input[type="range"]:disabled { opacity: 0.4; }
   font-size: 0.84rem; font-weight: 500; border: 1px solid rgba(244,241,255,0.12);
 }
 .view-toggle__tab--active { background: rgba(108,92,231,0.3); color: var(--lavender); border-color: var(--aurora-violet); }
+
+.add-goal { margin-bottom: var(--space-2); }
+.add-goal__form {
+  margin-top: 10px;
+  padding: 14px;
+  background: rgba(244, 241, 255, 0.05);
+  border: 1px solid rgba(244, 241, 255, 0.12);
+  border-radius: var(--radius-card);
+}
+.add-goal__row { margin-bottom: 10px; }
+.add-goal__row:last-of-type { margin-bottom: 0; }
+.add-goal__actions { display: flex; gap: 8px; margin-top: 10px; }
+.add-goal .text-input { background: rgba(244, 241, 255, 0.06); border-color: rgba(244, 241, 255, 0.16); color: var(--lavender); }
+.add-goal .text-input::placeholder { color: var(--lavender-faint); }
+.add-goal input[type="date"] { color-scheme: dark; }
 
 /* Вид «Список» */
 .checklist { display: flex; flex-direction: column; gap: 8px; margin-bottom: var(--space-3); }
