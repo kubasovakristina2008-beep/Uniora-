@@ -10,12 +10,12 @@
     "Демо-данные для хакатона, ориентировочные, по открытым источникам. Дедлайны — прошлый цикл подачи. Проценты совпадения и проходимости — эвристика Uniora, не официальная статистика вуза. Перед подачей документов проверяйте актуальную информацию на официальном сайте вуза.";
 
   var MAJORS = [
-    { id: "it", label: "Информатика и AI", sub: "CS, Data Science, Software Eng.", icon: "💻" },
+    { id: "it", label: "IT", sub: "CS, Data Science, Software Eng.", icon: "💻" },
     { id: "engineering", label: "Инженерия", sub: "Строительство, механика, энергетика", icon: "⚙️" },
     { id: "medicine", label: "Медицина", sub: "Стоматология, фарм., сестринское дело", icon: "⚕️" },
-    { id: "business", label: "Бизнес и экономика", sub: "Финансы, менеджмент, маркетинг", icon: "💼" },
-    { id: "intl_relations", label: "Межд. отношения", sub: "Право, политология, языки", icon: "🌐" },
-    { id: "arts", label: "Дизайн и искусство", sub: "Архитектура, графика, мода", icon: "🎨" }
+    { id: "business", label: "Бизнес", sub: "Финансы, менеджмент, маркетинг", icon: "💼" },
+    { id: "intl_relations", label: "Международные отношения", sub: "Право, политология, языки", icon: "🌐" },
+    { id: "arts", label: "Искусство", sub: "Архитектура, графика, мода", icon: "🎨" }
   ];
 
   var COUNTRIES = [
@@ -84,237 +84,237 @@
   var UNIVERSITIES = [
     {
       id: "mit", name: "MIT", fullName: "Massachusetts Institute of Technology",
-      country: "usa", city: "Кембридж", majors: ["it", "engineering"],
-      acceptanceRate: 0.04,
-      deadlineEarly: "1 ноября (прошлый цикл, Early Action)", deadlineMain: "1 января (прошлый цикл, Regular Action)",
-      ielts: 7.0, subjects: { math: 85, computerScience: 80, physics: 80 },
+      country: "usa", city: "Кембридж", majors: ["it"],
+      acceptanceRate: 0.073,
+      deadlineEarly: null, deadlineMain: "5 января (прошлый цикл, Regular Action)",
+      ielts: 7.5, toefl: 100, sat: 1520, subjects: { math: 83, computerScience: 78 },
       essay: true, recommendationLetters: "2 письма от учителей + 1 от куратора",
       scholarship: "Need-based financial aid (need-blind для граждан США, need-aware для большинства международных)",
       dormitory: "Да, кампус",
-      rankingCountry: 3, rankingWorld: 1,
-      website: "https://mit.edu", financialAidWebsite: "https://sfs.mit.edu",
-      comment: "Отбор полностью холистический: числовые пороги — ориентир, а не гарантия."
+      rankingCountry: null, rankingWorld: null,
+      website: "https://mitadmissions.org/", financialAidWebsite: "https://sfs.mit.edu/undergraduate-students/apply-for-aid/international/",
+      comment: "IELTS/TOEFL и дедлайн — из таблицы прошлого цикла, обязательно сверьте на официальном сайте перед подачей."
     },
     {
       id: "upenn", name: "University of Pennsylvania", fullName: "University of Pennsylvania (Wharton)",
       country: "usa", city: "Филадельфия", majors: ["business"],
-      acceptanceRate: 0.06,
+      acceptanceRate: 0.09,
       deadlineEarly: "1 ноября (прошлый цикл, Early Decision)", deadlineMain: "5 января (прошлый цикл, Regular Decision)",
-      ielts: 7.0, subjects: { math: 80, economics: 75 },
+      ielts: 7.0, toefl: null, sat: "Опционально", subjects: { math: 81, economics: 76 },
       essay: true, recommendationLetters: "2 письма от учителей + школьная характеристика",
       scholarship: "Need-based financial aid (need-aware для международных студентов)",
       dormitory: "Да, кампус",
-      rankingCountry: 6, rankingWorld: 12,
-      website: "https://upenn.edu", financialAidWebsite: "https://sfs.upenn.edu",
+      rankingCountry: 10, rankingWorld: 13,
+      website: "https://admissions.upenn.edu/", financialAidWebsite: "https://srfs.upenn.edu/financial-aid/international",
       comment: null
     },
     {
       id: "washu", name: "Washington University in St. Louis", fullName: "Washington University in St. Louis",
-      country: "usa", city: "Сент-Луис", majors: ["intl_relations", "business"],
-      acceptanceRate: 0.12,
-      deadlineEarly: "15 ноября (прошлый цикл, Early Decision I)", deadlineMain: "2 января (прошлый цикл, Regular Decision)",
-      ielts: 7.0, subjects: { history: 75, secondLanguage: 70, math: 75, economics: 70 },
-      essay: true, recommendationLetters: "2 письма от учителей + характеристика",
+      country: "usa", city: "Сент-Луис", majors: ["intl_relations"],
+      acceptanceRate: 0.16,
+      deadlineEarly: "1 ноября (прошлый цикл, Early Decision I)", deadlineMain: "4 января (прошлый цикл, Regular Decision)",
+      ielts: 6.5, toefl: null, sat: "Опционально", subjects: { history: 74, secondLanguage: 69 },
+      essay: true, recommendationLetters: "1 от учителя, 1 от консультанта",
       scholarship: "Need-based financial aid (need-aware для международных студентов)",
       dormitory: "Да, кампус",
-      rankingCountry: 15, rankingWorld: 65,
-      website: "https://wustl.edu", financialAidWebsite: "https://students.wustl.edu/financial-aid",
+      rankingCountry: 28, rankingWorld: 105,
+      website: "https://admissions.wustl.edu/", financialAidWebsite: "https://admissions.wustl.edu/cost-aid/scholarships/",
       comment: null
     },
     {
       id: "koc", name: "Koç University", fullName: "Koç Üniversitesi",
-      country: "turkey", city: "Стамбул", majors: ["it", "business"],
-      acceptanceRate: 0.20,
-      deadlineEarly: null, deadlineMain: "конец марта (прошлый цикл, международный приём)",
-      ielts: 6.5, subjects: { math: 65, computerScience: 60, economics: 60 },
-      essay: true, recommendationLetters: "1-2 письма (для некоторых программ)",
+      country: "turkey", city: "Стамбул", majors: ["business"],
+      acceptanceRate: 0.15,
+      deadlineEarly: "7 сентября (прошлый цикл)", deadlineMain: "23 сентября (прошлый цикл, международный приём)",
+      ielts: null, toefl: 80, sat: 1180, subjects: { math: 75, economics: 70 },
+      essay: true, recommendationLetters: "1 письмо",
       scholarship: "Институциональные стипендии Koç (по конкурсу, покрытие частичное или полное)",
       dormitory: "Да, кампус",
-      rankingCountry: 2, rankingWorld: 391,
-      website: "https://koc.edu.tr", financialAidWebsite: "https://koc.edu.tr/en/admissions/financial-aid",
-      comment: "Данные по международному приёму частично восстановлены из общих сведений вуза — уточняйте детали программы на сайте."
+      rankingCountry: 5, rankingWorld: 539,
+      website: "https://www.ku.edu.tr/en/", financialAidWebsite: "https://international.ku.edu.tr/undergraduate-programs/tuition-and-scholarships/",
+      comment: "SAT для инженерных программ обычно выше (около 1200) — уточните по конкретному направлению."
     },
     {
       id: "itu", name: "Istanbul Technical University", fullName: "İstanbul Teknik Üniversitesi",
-      country: "turkey", city: "Стамбул", majors: ["it", "engineering"],
-      acceptanceRate: 0.25,
-      deadlineEarly: null, deadlineMain: "конец июня (прошлый цикл, приём по YÖS)",
-      ielts: 6.5, subjects: { math: 60, computerScience: 55, physics: 55 },
-      essay: false, recommendationLetters: "Не требуется для большинства программ",
+      country: "turkey", city: "Стамбул", majors: ["arts"],
+      acceptanceRate: 0.32,
+      deadlineEarly: "1 июня (прошлый цикл)", deadlineMain: "26 июня (прошлый цикл, приём по YÖS)",
+      ielts: null, toefl: 65, sat: 600, subjects: { artHistory: 58, literature: 53 },
+      essay: true, recommendationLetters: "Не требуются",
       scholarship: "Türkiye Bursları (для отдельных программ и стран)",
       dormitory: "Да, ограниченно",
-      rankingCountry: 4, rankingWorld: 601,
-      website: "https://itu.edu.tr", financialAidWebsite: "https://www.turkiyeburslari.gov.tr",
-      comment: null
+      rankingCountry: 6, rankingWorld: 606,
+      website: "https://www.itu.edu.tr/en", financialAidWebsite: "https://ins.itu.edu.tr/en/students/scholarship",
+      comment: "⚠ В источнике указана как «Искусство», но ITU — технический университет (инженерия/архитектура). Уточните программу перед показом. SAT-балл — минимум по математике (из 800), не общий."
     },
     {
       id: "hacettepe", name: "Hacettepe University", fullName: "Hacettepe Üniversitesi",
       country: "turkey", city: "Анкара", majors: ["medicine"],
-      acceptanceRate: 0.30,
-      deadlineEarly: null, deadlineMain: "конец июня (прошлый цикл, приём по YÖS)",
-      ielts: 6.0, subjects: { biology: 55, chemistry: 50 },
-      essay: false, recommendationLetters: "Не требуется",
-      scholarship: "Türkiye Bursları",
+      acceptanceRate: 0.95,
+      deadlineEarly: "22 сентября (прошлый цикл)", deadlineMain: "25 сентября (прошлый цикл, приём по YÖS)",
+      ielts: null, toefl: "Опционально", sat: "1000, опционально", subjects: { biology: 35, chemistry: 35 },
+      essay: false, recommendationLetters: "Опционально",
+      scholarship: null,
       dormitory: "Да, ограниченно",
-      rankingCountry: 5, rankingWorld: 801,
-      website: "https://hacettepe.edu.tr", financialAidWebsite: "https://www.turkiyeburslari.gov.tr",
-      comment: "Для медицины вступительный экзамен (YÖS) практически полностью определяет результат."
+      rankingCountry: 8, rankingWorld: 691,
+      website: "http://www.hacettepe.edu.tr/english", financialAidWebsite: null,
+      comment: "SAT 1000 суммарно, минимум 500 по каждой секции."
     },
     {
       id: "bocconi", name: "Università Bocconi", fullName: "Università commerciale Luigi Bocconi",
-      country: "italy", city: "Милан", majors: ["business", "intl_relations"],
-      acceptanceRate: 0.13,
-      deadlineEarly: "начало января (прошлый цикл, 1-й раунд)", deadlineMain: "начало марта (прошлый цикл, 3-й раунд)",
-      ielts: 7.0, subjects: { math: 75, economics: 70, history: 75, secondLanguage: 70 },
-      essay: true, recommendationLetters: "Не обязательны, но приветствуются",
+      country: "italy", city: "Милан", majors: ["business"],
+      acceptanceRate: 0.38,
+      deadlineEarly: "1 мая (прошлый цикл, 1-й раунд)", deadlineMain: null,
+      ielts: 5.0, toefl: null, sat: 1040, subjects: { math: 52, economics: 47 },
+      essay: true, recommendationLetters: "Не менее 2 писем",
       scholarship: "Merit-based гранты Bocconi + региональные гранты DSU (по доходу семьи)",
       dormitory: "Да, ограниченно",
-      rankingCountry: 1, rankingWorld: 155,
-      website: "https://unibocconi.eu", financialAidWebsite: "https://unibocconi.eu/en/study/tuition-and-financial-aid",
-      comment: null
+      rankingCountry: 3, rankingWorld: 400,
+      website: "https://www.unibocconi.eu/", financialAidWebsite: "https://www.unibocconi.eu/wps/wcm/connect/bocconi/sitopubblico_en/navigation+tree/home/programs/bachelor+of+science/funding",
+      comment: "⚠ Строка была сдвинута по колонкам в исходной таблице — данные восстановлены вручную, сверьте с официальным сайтом. Минимальный IELTS по источнику ≥5.0, но реалистичный конкурентный уровень — от 7.0."
     },
     {
       id: "bologna", name: "University of Bologna", fullName: "Alma Mater Studiorum – Università di Bologna",
-      country: "italy", city: "Болонья", majors: ["intl_relations", "arts"],
-      acceptanceRate: 0.35,
-      deadlineEarly: null, deadlineMain: "конец июля (прошлый цикл, для не-ЕС абитуриентов)",
-      ielts: 6.0, subjects: { history: 50, secondLanguage: 45, artHistory: 50, literature: 45 },
-      essay: false, recommendationLetters: "Не требуется для большинства программ бакалавриата",
+      country: "italy", city: "Болонья", majors: ["intl_relations"],
+      acceptanceRate: 0.55,
+      deadlineEarly: "15 марта (прошлый цикл)", deadlineMain: null,
+      ielts: 6.5, toefl: null, sat: "Не указано", subjects: { history: 35, secondLanguage: 35 },
+      essay: true, recommendationLetters: "Не менее 2 писем",
       scholarship: "Региональные гранты DSU (по доходу семьи)",
       dormitory: "Да, ограниченно",
-      rankingCountry: 2, rankingWorld: 160,
-      website: "https://unibo.it", financialAidWebsite: "https://unibo.it/en/services-and-opportunities/study-grants-and-subsidies",
-      comment: null
+      rankingCountry: 1, rankingWorld: 167,
+      website: "https://www.unibo.it/en", financialAidWebsite: "https://www.unibo.it/en/services-and-opportunities/study-grants-and-subsidies",
+      comment: "⚠ Та же проблема со сдвигом колонок, что у Bocconi — восстановлено вручную, сверьте с оригиналом."
     },
     {
       id: "polimi", name: "Politecnico di Milano", fullName: "Politecnico di Milano",
-      country: "italy", city: "Милан", majors: ["it", "engineering", "arts"],
-      acceptanceRate: 0.28,
-      deadlineEarly: null, deadlineMain: "конец июля (прошлый цикл, вступительный тест TOLC/TIL)",
-      ielts: 6.0, subjects: { math: 55, computerScience: 50, physics: 50, artHistory: 55, literature: 50 },
-      essay: false, recommendationLetters: "Не требуется",
+      country: "italy", city: "Милан", majors: ["engineering", "arts"],
+      acceptanceRate: 0.5,
+      deadlineEarly: "26 марта (прошлый цикл)", deadlineMain: null,
+      ielts: 6.0, toefl: null, sat: "Не указано", subjects: { math: 40, physics: 35, artHistory: 40, literature: 35 },
+      essay: true, recommendationLetters: "Не менее 2 писем",
       scholarship: "Региональные гранты DSU + стипендии Politecnico по успеваемости",
       dormitory: "Да, ограниченно",
-      rankingCountry: 1, rankingWorld: 123,
-      website: "https://polimi.it", financialAidWebsite: "https://polimi.it/en/services-and-opportunities/study-grants-and-subsidies",
-      comment: "Для направления «Дизайн» дополнительно оценивается творческое портфолио."
+      rankingCountry: 16, rankingWorld: 301,
+      website: "https://www.polimi.it/en", financialAidWebsite: "https://www.polimi.it/en/current-students/tuition-fees-scholarships-and-financial-aid/",
+      comment: "⚠ Изначально указаны инженерная и дизайн-специальности — это реалистично для Politecnico, но сверьте по конкретной программе."
     },
     {
       id: "bme", name: "BME", fullName: "Budapest University of Technology and Economics",
-      country: "hungary", city: "Будапешт", majors: ["it", "engineering"],
-      acceptanceRate: 0.45,
-      deadlineEarly: null, deadlineMain: "15 февраля (прошлый цикл)",
-      ielts: 5.5, subjects: { math: 45, computerScience: 40, physics: 40 },
-      essay: false, recommendationLetters: "Не требуется",
-      scholarship: "Stipendium Hungaricum",
+      country: "hungary", city: "Будапешт", majors: ["engineering"],
+      acceptanceRate: 0.27,
+      deadlineEarly: "15 июня (прошлый цикл)", deadlineMain: null,
+      ielts: 5.5, toefl: null, sat: "Не указано", subjects: { math: 63, physics: 58 },
+      essay: false, recommendationLetters: "Требуется рекомендательное письмо",
+      scholarship: null,
       dormitory: "Да, кампус",
-      rankingCountry: 2, rankingWorld: 601,
-      website: "https://bme.hu", financialAidWebsite: "https://stipendiumhungaricum.hu",
+      rankingCountry: 5, rankingWorld: "801–1000",
+      website: "https://xplore.bme.hu/admission/", financialAidWebsite: null,
       comment: null
     },
     {
       id: "elte", name: "ELTE", fullName: "Eötvös Loránd University",
-      country: "hungary", city: "Будапешт", majors: ["it", "intl_relations", "arts"],
-      acceptanceRate: 0.50,
-      deadlineEarly: null, deadlineMain: "15 февраля (прошлый цикл)",
-      ielts: 5.5, subjects: { math: 45, computerScience: 40, history: 45, secondLanguage: 40, artHistory: 45, literature: 40 },
-      essay: false, recommendationLetters: "Не требуется для большинства программ",
-      scholarship: "Stipendium Hungaricum",
+      country: "hungary", city: "Будапешт", majors: ["intl_relations"],
+      acceptanceRate: 0.35,
+      deadlineEarly: "15 марта (прошлый цикл)", deadlineMain: null,
+      ielts: 5.5, toefl: null, sat: "Не указано", subjects: { history: 55, secondLanguage: 50 },
+      essay: true, recommendationLetters: "Требуется рекомендательное письмо",
+      scholarship: null,
       dormitory: "Да, кампус",
-      rankingCountry: 1, rankingWorld: 601,
-      website: "https://elte.hu", financialAidWebsite: "https://stipendiumhungaricum.hu",
+      rankingCountry: 3, rankingWorld: "601–650",
+      website: "https://www.elte.hu/en/", financialAidWebsite: null,
       comment: null
     },
     {
       id: "semmelweis", name: "Semmelweis University", fullName: "Semmelweis Egyetem",
       country: "hungary", city: "Будапешт", majors: ["medicine"],
       acceptanceRate: 0.25,
-      deadlineEarly: "1 декабря (прошлый цикл, ранняя подача)", deadlineMain: "15 марта (прошлый цикл, вступительный экзамен)",
-      ielts: 6.0, subjects: { biology: 60, chemistry: 55 },
-      essay: false, recommendationLetters: "Не требуется",
-      scholarship: "Stipendium Hungaricum (покрывает обучение и общежитие)",
+      deadlineEarly: "31 мая (прошлый цикл)", deadlineMain: null,
+      ielts: null, toefl: "Не указано", sat: "Не указано", subjects: { biology: 65, chemistry: 60 },
+      essay: true, recommendationLetters: "Требуется рекомендательное письмо",
+      scholarship: null,
       dormitory: "Да, кампус",
-      rankingCountry: 3, rankingWorld: 601,
-      website: "https://semmelweis.hu", financialAidWebsite: "https://stipendiumhungaricum.hu",
-      comment: null
+      rankingCountry: null, rankingWorld: null,
+      website: "https://semmelweis.hu/english/", financialAidWebsite: null,
+      comment: "Экзамены и рейтинг изначально не собраны в источнике — требует доисследования, не заполняйте догадками."
     },
     {
       id: "tsinghua", name: "Tsinghua University", fullName: "清华大学",
-      country: "china", city: "Пекин", majors: ["it", "engineering"],
-      acceptanceRate: 0.03,
-      deadlineEarly: null, deadlineMain: "конец февраля (прошлый цикл, для абитуриентов-иностранцев)",
-      ielts: 6.5, subjects: { math: 85, computerScience: 80, physics: 80 },
-      essay: true, recommendationLetters: "2 рекомендательных письма",
+      country: "china", city: "Пекин", majors: ["it"],
+      acceptanceRate: 0.25,
+      deadlineEarly: null, deadlineMain: "25 августа (прошлый цикл, для абитуриентов-иностранцев)",
+      ielts: null, toefl: "Требуется", sat: "Да", subjects: { math: 65, computerScience: 60 },
+      essay: true, recommendationLetters: "Требуется",
       scholarship: "CSC grant (China Scholarship Council)",
       dormitory: "Да, кампус",
-      rankingCountry: 1, rankingWorld: 17,
-      website: "https://tsinghua.edu.cn", financialAidWebsite: "https://www.csc.edu.cn",
-      comment: "Данные по конкурсу для иностранных абитуриентов ограничены — вуз не публикует детальную статистику, цифра восстановлена приблизительно."
+      rankingCountry: 1, rankingWorld: 13,
+      website: "https://www.tsinghua.edu.cn/en/", financialAidWebsite: "https://www.tsinghua.edu.cn/en/Admissions/International_Students1/Financial_Aid.htm",
+      comment: "Процент поступления указан для иностранных студентов, не общий конкурс."
     },
     {
       id: "peking", name: "Peking University", fullName: "北京大学",
-      country: "china", city: "Пекин", majors: ["intl_relations", "business", "arts"],
-      acceptanceRate: 0.04,
-      deadlineEarly: null, deadlineMain: "конец февраля (прошлый цикл)",
-      ielts: 6.5, subjects: { history: 85, secondLanguage: 80, math: 85, economics: 80, artHistory: 85, literature: 80 },
-      essay: true, recommendationLetters: "2 рекомендательных письма",
-      scholarship: "CSC grant (China Scholarship Council)",
+      country: "china", city: "Пекин", majors: ["medicine"],
+      acceptanceRate: 0.15,
+      deadlineEarly: null, deadlineMain: "30 августа (прошлый цикл)",
+      ielts: 6.5, toefl: 75, sat: "Да", subjects: { biology: 75, chemistry: 70 },
+      essay: true, recommendationLetters: "Требуются 2 письма",
+      scholarship: null,
       dormitory: "Да, ограниченно",
       rankingCountry: 2, rankingWorld: 14,
-      website: "https://pku.edu.cn", financialAidWebsite: "https://www.csc.edu.cn",
-      comment: "Данные по конкурсу для иностранных абитуриентов ограничены — цифра восстановлена приблизительно."
+      website: "https://english.pku.edu.cn", financialAidWebsite: null,
+      comment: "Процент поступления — для иностранных студентов."
     },
     {
       id: "zhejiang", name: "Zhejiang University", fullName: "浙江大学",
-      country: "china", city: "Ханчжоу", majors: ["it", "engineering", "medicine"],
-      acceptanceRate: 0.18,
-      deadlineEarly: null, deadlineMain: "конец марта (прошлый цикл)",
-      ielts: 6.0, subjects: { math: 70, computerScience: 65, physics: 65, biology: 70, chemistry: 65 },
-      essay: true, recommendationLetters: "1-2 рекомендательных письма",
-      scholarship: "CSC grant (China Scholarship Council)",
+      country: "china", city: "Ханчжоу", majors: ["engineering"],
+      acceptanceRate: 0.3,
+      deadlineEarly: null, deadlineMain: "10 марта (прошлый цикл)",
+      ielts: null, toefl: "Требуется", sat: "Да", subjects: { math: 60, physics: 55 },
+      essay: true, recommendationLetters: "Требуются 2 письма",
+      scholarship: null,
       dormitory: "Да, ограниченно",
-      rankingCountry: 4, rankingWorld: 44,
-      website: "https://zju.edu.cn", financialAidWebsite: "https://www.csc.edu.cn",
-      comment: null
+      rankingCountry: 4, rankingWorld: 42,
+      website: "https://www.zju.edu.cn/english/main.htm", financialAidWebsite: null,
+      comment: "Процент поступления указан для иностранных студентов."
     },
     {
       id: "kaist", name: "KAIST", fullName: "Korea Advanced Institute of Science and Technology",
-      country: "south_korea", city: "Тэджон", majors: ["it", "engineering"],
-      acceptanceRate: 0.10,
-      deadlineEarly: null, deadlineMain: "9 сентября (прошлый цикл, для иностранных абитуриентов)",
-      ielts: 6.5, subjects: { math: 75, computerScience: 70, physics: 70 },
-      essay: true, recommendationLetters: "2 рекомендательных письма",
+      country: "south_korea", city: "Тэджон", majors: ["engineering"],
+      acceptanceRate: 0.18,
+      deadlineEarly: "21 октября (прошлый цикл)", deadlineMain: "13 января (прошлый цикл, для иностранных абитуриентов)",
+      ielts: 6.5, toefl: 83, sat: "Да", subjects: { math: 72, physics: 67 },
+      essay: false, recommendationLetters: "Только 1 письмо",
       scholarship: "GKS — Global Korea Scholarship + стипендии KAIST",
       dormitory: "Да, кампус",
-      rankingCountry: 3, rankingWorld: 56,
-      website: "https://kaist.ac.kr", financialAidWebsite: "https://admission.kaist.ac.kr",
-      comment: null
+      rankingCountry: 1, rankingWorld: 96,
+      website: "https://admission.kaist.ac.kr/intl-undergraduate/", financialAidWebsite: "https://admission.kaist.ac.kr/intl-undergraduate/scholarships/",
+      comment: "⚠ В источнике дедлайны шли не по порядку (основная подача раньше ранней) — перепроверьте на официальном сайте."
     },
     {
       id: "kyunghee", name: "Kyung Hee University", fullName: "경희대학교",
-      country: "south_korea", city: "Сеул", majors: ["medicine", "intl_relations"],
-      acceptanceRate: 0.40,
-      deadlineEarly: "начало сентября (прошлый цикл)", deadlineMain: "начало декабря (прошлый цикл)",
-      ielts: 5.5, subjects: { biology: 45, chemistry: 40, history: 45, secondLanguage: 40 },
-      essay: true, recommendationLetters: "1 рекомендательное письмо",
-      scholarship: "GKS — Global Korea Scholarship (ограниченное число мест)",
+      country: "south_korea", city: "Сеул", majors: ["arts"],
+      acceptanceRate: 0.45,
+      deadlineEarly: "19 марта (прошлый цикл)", deadlineMain: null,
+      ielts: 5.5, toefl: 80, sat: "Опционально", subjects: { artHistory: 45, literature: 40 },
+      essay: true, recommendationLetters: "Не требуются",
+      scholarship: null,
       dormitory: "Да, кампус",
-      rankingCountry: 8, rankingWorld: 601,
-      website: "https://khu.ac.kr", financialAidWebsite: "https://khu.ac.kr/admission",
-      comment: null
+      rankingCountry: 8, rankingWorld: "251–300",
+      website: "https://www.khu.ac.kr/eng/", financialAidWebsite: null,
+      comment: "Официальная страница по стипендиям не найдена с ходу — уточните на khu.ac.kr перед показом."
     },
     {
       id: "jeonbuk", name: "Jeonbuk National University", fullName: "전북대학교",
-      country: "south_korea", city: "Чонджу", majors: ["engineering", "business"],
-      acceptanceRate: 0.55,
-      deadlineEarly: null, deadlineMain: "начало декабря (прошлый цикл)",
-      ielts: 5.0, subjects: { math: 40, physics: 35, economics: 35 },
-      essay: false, recommendationLetters: "Не требуется",
-      scholarship: "GKS — Global Korea Scholarship (региональные квоты)",
+      country: "south_korea", city: "Чонджу", majors: ["it"],
+      acceptanceRate: 0.2,
+      deadlineEarly: "1 апреля (прошлый цикл)", deadlineMain: "1 октября (прошлый цикл)",
+      ielts: 5.5, toefl: 80, sat: "Опционально", subjects: { math: 70, computerScience: 65 },
+      essay: true, recommendationLetters: "Не требуется",
+      scholarship: null,
       dormitory: "Да, кампус",
-      rankingCountry: 15, rankingWorld: 1201,
-      website: "https://jbnu.ac.kr", financialAidWebsite: "https://jbnu.ac.kr/admission",
-      comment: "Региональный национальный университет — более доступный конкурс, чем у столичных вузов Кореи."
+      rankingCountry: 18, rankingWorld: "591–600",
+      website: "https://www.jbnu.ac.kr/eng/", financialAidWebsite: null,
+      comment: "⚠ Город исправлен на Jeonju (в источнике ошибочно указан Seoul) — перепроверьте."
     }
   ];
 
@@ -326,7 +326,7 @@
     { id: "nasa_space_apps", name: "NASA International Space Apps Challenge", majors: ["it", "engineering"], type: "Хакатон", level: "Международный", format: "Очно/онлайн", timing: "Обычно октябрь, ежегодно", website: "https://spaceappschallenge.org", whyBoost: "Международный хакатон NASA — показывает проектные и командные навыки в IT и инженерии на практике.", limitation: null },
     { id: "technovation", name: "Technovation Girls", majors: ["it"], type: "Конкурс проектов", level: "Международный", format: "Очно/онлайн", timing: "Регистрация обычно зимой, финал — летом", website: "https://technovationchallenge.org", whyBoost: "Международная программа разработки технологических решений — отдельно ценится для портфолио в IT.", limitation: "Участие ориентировано на девушек и представительниц гендерных меньшинств школьного возраста." },
     { id: "first_global", name: "FIRST Global Challenge", majors: ["engineering"], type: "Соревнование", level: "Международный", format: "Очно", timing: "Обычно сентябрь-октябрь", website: "https://first.global", whyBoost: "Международное соревнование по робототехнике между сборными стран — заметный сигнал для инженерных программ.", limitation: "Отбор в сборную страны обычно идёт через национального партнёра FIRST Global." },
-    { id: "genius_olympiad", name: "Genius Olympiad", majors: ["engineering"], type: "Олимпиада проектов", level: "Международный", format: "Очно (США)", timing: "Обычно июнь", website: "https://geniusolympiad.org", whyBoost: "Международная выставка научно-инженерных и экологических проектов — ценится для инженерных и научных направлений.", limitation: "Участие платное, требуется самостоятельная организация поездки." },
+    { id: "genius_olympiad", name: "Genius Olympiad", majors: ["engineering", "it", "business"], type: "Олимпиада проектов", level: "Международный", format: "Очно (США)", timing: "Обычно июнь", website: "https://geniusolympiad.org", whyBoost: "Международная выставка научно-инженерных и экологических проектов — ценится для инженерных и научных направлений.", limitation: "Участие платное, требуется самостоятельная организация поездки." },
     { id: "ibo", name: "IBO — International Biology Olympiad", majors: ["medicine"], type: "Олимпиада", level: "Международный", format: "Очно", timing: "Обычно июль", website: "https://www.ibo-info.org", whyBoost: "Международная олимпиада по биологии — один из самых узнаваемых результатов для медицинских программ.", limitation: "Участие — через национальную сборную." },
     { id: "icho", name: "IChO — International Chemistry Olympiad", majors: ["medicine"], type: "Олимпиада", level: "Международный", format: "Очно", timing: "Обычно июль", website: "https://icho-official.org", whyBoost: "Международная олимпиада по химии — значимый предметный сигнал для медицинских и естественнонаучных программ.", limitation: "Участие — через национальную сборную." },
     { id: "hosa", name: "HOSA — Future Health Professionals", majors: ["medicine"], type: "Соревнование", level: "Международный", format: "Очно (США)", timing: "Обычно июнь", website: "https://hosa.org", whyBoost: "Международные соревнования по медицинским компетенциям — показывают раннюю вовлечённость в профессию.", limitation: "Для иностранных участников — через международный трек HOSA, доступность варьируется по регионам." },
@@ -420,6 +420,85 @@
     "Это собственная качественная оценка команды Uniora на основе изучения публичных требований вузов и типовых практик — не официальная статистика. Стоимость обучения и жизни намеренно не учитывается: команда не использует бюджет как критерий подбора.";
 
   // ---------------------------------------------------------------------
+  // PRIORITIES — эталонная таблица приоритетов портфолио по странам
+  // (из data-reference.js, сверено 18.09.2026). Собственная качественная
+  // методика команды Uniora, НЕ официальная статистика вузов.
+  // level: 'high' | 'medium' | 'low'
+  // ---------------------------------------------------------------------
+  var PRIORITIES = {
+    china: {
+      label: "Китай",
+      rows: [
+        { cat: "exams", level: "high", note: "Экзамены и академическая успеваемость — решающий фактор при отборе." },
+        { cat: "research", level: "medium", note: "Проекты и исследования — заметный плюс, но не обязательное условие." },
+        { cat: "olympiads", level: "medium", note: "Международные олимпиады усиливают заявку, особенно по профильному предмету." },
+        { cat: "sport", level: "low", note: "Спортивные достижения почти не влияют на решение." },
+        { cat: "volunteering", level: "low", note: "Волонтёрство почти не влияет на решение." }
+      ]
+    },
+    south_korea: {
+      label: "Южная Корея",
+      rows: [
+        { cat: "exams", level: "high", note: "Экзамены и академическая успеваемость — решающий фактор при отборе." },
+        { cat: "research", level: "medium", note: "Проекты и исследования — заметный плюс." },
+        { cat: "olympiads", level: "medium", note: "Международные олимпиады усиливают заявку по профильному направлению." },
+        { cat: "sport", level: "low", note: "Спортивные достижения почти не влияют на решение." },
+        { cat: "volunteering", level: "low", note: "Волонтёрство почти не влияет на решение." }
+      ]
+    },
+    hungary: {
+      label: "Венгрия",
+      rows: [
+        { cat: "exams", level: "high", note: "Экзамены и академическая успеваемость — решающий фактор при отборе." },
+        { cat: "research", level: "medium", note: "Проекты и исследования — заметный плюс." },
+        { cat: "olympiads", level: "medium", note: "Международные олимпиады усиливают заявку по профильному направлению." },
+        { cat: "sport", level: "low", note: "Спортивные достижения почти не влияют на решение." },
+        { cat: "volunteering", level: "low", note: "Волонтёрство почти не влияет на решение." }
+      ]
+    },
+    italy: {
+      label: "Италия",
+      rows: [
+        { cat: "exams", level: "high", note: "Для медицины вступительный экзамен решает почти всё; для искусства — отдельное творческое портфолио. В остальном — средне-высокая значимость." },
+        { cat: "research", level: "medium", note: "Проекты и исследования — заметный плюс." },
+        { cat: "olympiads", level: "medium", note: "Международные олимпиады усиливают заявку по профильному направлению." },
+        { cat: "sport", level: "low", note: "Спортивные достижения почти не влияют на решение." },
+        { cat: "volunteering", level: "low", note: "Волонтёрство почти не влияет на решение." }
+      ]
+    },
+    turkey: {
+      label: "Турция",
+      rows: [
+        { cat: "exams", level: "high", note: "Собственные вступительные экзамены вузов (например, YÖS) обычно решают почти всё." },
+        { cat: "research", level: "medium", note: "Проекты и исследования — заметный плюс." },
+        { cat: "olympiads", level: "medium", note: "Международные олимпиады усиливают заявку по профильному направлению." },
+        { cat: "sport", level: "medium", note: "Спортивная активность иногда учитывается при отборе на гранты." },
+        { cat: "volunteering", level: "medium", note: "Может иметь значение для стипендиальных программ вроде Türkiye Bursları." }
+      ]
+    },
+    usa: {
+      label: "США",
+      rows: [
+        { cat: "exams", level: "medium", note: "Экзамены — это порог, а не решающий фактор сам по себе." },
+        { cat: "research", level: "high", note: "Исследования и проекты с измеримым результатом — один из самых весомых пунктов." },
+        { cat: "olympiads", level: "high", note: "Международные (не региональные) олимпиады заметно усиливают заявку." },
+        { cat: "sport", level: "high", note: "Серьёзные спортивные достижения делают абитуриента заметно конкурентоспособнее." },
+        { cat: "volunteering", level: "medium", note: "Часть общей «истории» абитуриента, но не решает само по себе." }
+      ]
+    }
+  };
+
+  var PRIORITY_CATEGORY_LABELS = {
+    exams: "Экзамены и академика",
+    research: "Исследования и проекты",
+    olympiads: "Межд. олимпиады",
+    sport: "Спорт",
+    volunteering: "Волонтёрство"
+  };
+
+  var PRIORITY_LEVEL_LABELS = { high: "Высокий", medium: "Средний", low: "Низкий" };
+
+  // ---------------------------------------------------------------------
   // Мини-профориентация — 5 вопросов, привязанных к специальностям.
   // ---------------------------------------------------------------------
   var CAREER_QUIZ = [
@@ -480,6 +559,9 @@
     COUNTRY_INFO: COUNTRY_INFO,
     COUNTRY_DIMENSION_LABELS: COUNTRY_DIMENSION_LABELS,
     COUNTRY_METHOD_DISCLAIMER: COUNTRY_METHOD_DISCLAIMER,
+    PRIORITIES: PRIORITIES,
+    PRIORITY_CATEGORY_LABELS: PRIORITY_CATEGORY_LABELS,
+    PRIORITY_LEVEL_LABELS: PRIORITY_LEVEL_LABELS,
     CAREER_QUIZ: CAREER_QUIZ
   };
 })(window);
