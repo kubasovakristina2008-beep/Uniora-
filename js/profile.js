@@ -63,9 +63,33 @@
   }
 
   // ---------------- Progress / nav ----------------
-  function updateProgress() {
-    qs("#wizard-fill").style.width = Math.round((currentStep / TOTAL_STEPS) * 100) + "%";
-    qs("#wizard-label").textContent = t("profile.stepLabel") + " " + currentStep + " " + t("profile.of") + " " + TOTAL_STEPS;
+  var SIDEBAR_STEP_KEYS = [
+    "profile.sidebarStep1", "profile.sidebarStep2", "profile.sidebarStep3",
+    "profile.sidebarStep4", "profile.sidebarStep5", "profile.sidebarStep6"
+  ];
+
+  function renderSidebarSteps() {
+    var mount = qs("#wizard-steps");
+    if (!mount) return;
+    mount.innerHTML = "";
+    for (var i = 1; i <= TOTAL_STEPS; i++) {
+      var state = i < currentStep ? "done" : i === currentStep ? "current" : "pending";
+      var status = state === "done" ? t("profile.sidebarDone")
+        : state === "current" ? (t("profile.stepLabel") + " " + i + " " + t("profile.of") + " " + TOTAL_STEPS)
+        : "";
+      var stepEl = el("button", {
+        type: "button",
+        class: "wizard-step wizard-step--" + state,
+        onclick: function (n) { return function () { goToStep(n); }; }(i)
+      }, [
+        el("span", { class: "wizard-step__marker" }, [state === "done" ? "✓" : state === "current" ? "✦" : ""]),
+        el("span", { class: "wizard-step__body" }, [
+          status ? el("span", { class: "wizard-step__status" }, [status]) : null,
+          el("span", { class: "wizard-step__label" }, [t(SIDEBAR_STEP_KEYS[i - 1])])
+        ])
+      ]);
+      mount.appendChild(stepEl);
+    }
   }
 
   function updateNavButtons() {
@@ -577,7 +601,7 @@
 
   // ---------------- Init ----------------
   function render() {
-    updateProgress();
+    renderSidebarSteps();
     var container = qs("#step-content");
     container.innerHTML = "";
     var renderers = [null, renderStep1, renderStep2, renderStep3, renderStep4, renderStep5, renderStep6];

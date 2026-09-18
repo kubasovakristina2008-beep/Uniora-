@@ -143,6 +143,13 @@
     profile: {
       title: { ru: "Профиль — Uniora", en: "Profile — Uniora" },
       stepLabel: { ru: "Шаг", en: "Step" },
+      sidebarStep1: { ru: "Этап обучения", en: "Education stage" },
+      sidebarStep2: { ru: "Специальность", en: "Major" },
+      sidebarStep3: { ru: "Страны", en: "Countries" },
+      sidebarStep4: { ru: "Достижения", en: "Achievements" },
+      sidebarStep5: { ru: "Экзамены", en: "Exams" },
+      sidebarStep6: { ru: "Проверка", en: "Review" },
+      sidebarDone: { ru: "Готово", en: "Done" },
       of: { ru: "из", en: "of" },
       back: { ru: "Назад", en: "Back" },
       toHome: { ru: "На главную", en: "To home" },

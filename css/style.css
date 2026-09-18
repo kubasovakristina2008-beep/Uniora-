@@ -163,6 +163,13 @@ section.page-section--tight { padding: var(--space-3) 0; }
   align-items: center;
   gap: 8px;
 }
+/* Ниже ~600px логотип + шаги + справа "Избранное"/язык не помещаются в одну
+   строку — шаги превращались в узкую нечитаемую полоску. Переносим их на
+   отдельную строку во всю ширину, где прокрутка снова остаётся удобной. */
+@media (max-width: 600px) {
+  .site-nav__inner { flex-wrap: wrap; row-gap: 10px; }
+  .site-nav__steps { order: 3; flex: 1 1 100%; }
+}
 .site-nav__fav-link {
   flex-shrink: 0;
   display: flex;
@@ -399,26 +406,68 @@ section.page-section--tight { padding: var(--space-3) 0; }
 }
 
 /* ---------------- Profile wizard ---------------- */
-.wizard-progress {
+/* ---------------- Анкета: боковая панель шагов ---------------- */
+.wizard-shell { display: flex; align-items: stretch; min-height: calc(100vh - 65px); }
+.wizard-sidebar {
+  flex: 0 0 300px;
+  background: var(--space-900);
+  background-image: radial-gradient(circle at 20% 15%, rgba(108, 92, 231, 0.35), transparent 55%),
+                     radial-gradient(circle at 85% 75%, rgba(255, 107, 157, 0.18), transparent 50%);
+  padding: var(--space-4) var(--space-3);
+  color: var(--lavender);
+}
+.wizard-sidebar__logo {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--lavender);
+  margin-bottom: var(--space-4);
+}
+.wizard-sidebar__steps { display: flex; flex-direction: column; }
+.wizard-step {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: var(--space-3);
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 8px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  text-align: left;
+  color: inherit;
+  width: 100%;
+  position: relative;
 }
-.wizard-progress__bar {
-  flex: 1;
-  height: 6px;
-  background: rgba(20, 22, 43, 0.08);
-  border-radius: 999px;
-  overflow: hidden;
+.wizard-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 19px;
+  top: 38px;
+  bottom: -6px;
+  width: 1px;
+  border-left: 1px dashed rgba(244, 241, 255, 0.25);
 }
-.wizard-progress__fill {
-  height: 100%;
-  background: var(--aurora-gradient);
-  border-radius: 999px;
-  transition: width 0.25s ease;
+.wizard-step--current { background: rgba(108, 92, 231, 0.16); }
+.wizard-step__marker {
+  flex-shrink: 0;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem;
+  border: 1.5px solid rgba(244, 241, 255, 0.3);
+  background: rgba(244, 241, 255, 0.06);
+  color: var(--lavender-faint);
+  z-index: 1;
 }
-.wizard-progress__label { font-size: 0.8rem; color: var(--ink-faint); white-space: nowrap; }
+.wizard-step--done .wizard-step__marker { background: var(--aurora-teal); border-color: var(--aurora-teal); color: var(--space-900); }
+.wizard-step--current .wizard-step__marker { background: var(--aurora-violet); border-color: var(--aurora-violet); color: #fff; }
+.wizard-step__body { display: flex; flex-direction: column; gap: 2px; padding-top: 1px; }
+.wizard-step__status { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--aurora-teal); }
+.wizard-step--current .wizard-step__status { color: var(--aurora-coral); }
+.wizard-step__label { font-size: 0.92rem; font-weight: 600; color: var(--lavender-faint); }
+.wizard-step--current .wizard-step__label, .wizard-step--done .wizard-step__label { color: var(--lavender); }
+
+.wizard-main { flex: 1; min-width: 0; display: flex; justify-content: center; padding: var(--space-5) var(--space-3); }
+.wizard-main__inner { width: 100%; max-width: 640px; }
 
 .option-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-2); }
 .option-card {
@@ -603,10 +652,51 @@ input[type="range"]:disabled { opacity: 0.4; }
 .empty-state h3 { margin-bottom: 8px; }
 
 /* ---------------- Diagnosis ---------------- */
-.diagnosis-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-3); }
-.stat-card__label { font-size: 0.82rem; color: var(--ink-faint); margin-bottom: 6px; }
-.stat-card__value { font-family: var(--font-head); font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; }
-.stat-card__note { font-size: 0.78rem; color: var(--ink-faint); }
+/* ---------------- Диагностика: радар + боковая колонка ---------------- */
+.diagnosis-layout { display: grid; grid-template-columns: minmax(280px, 420px) 1fr; gap: var(--space-3); align-items: start; }
+.diagnosis-radar-panel { display: flex; flex-direction: column; align-items: center; }
+.radar-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  align-items: center;
+  justify-items: center;
+  gap: 6px 10px;
+  width: 100%;
+  max-width: 100%;
+  margin-top: 8px;
+}
+.radar-label { text-align: center; max-width: 120px; }
+.radar-label__name { font-size: 0.76rem; color: var(--ink-faint); line-height: 1.25; }
+.radar-label__value { font-family: var(--font-head); font-weight: 700; font-size: 0.95rem; color: var(--ink); }
+.radar-label--top { grid-column: 2; grid-row: 1; }
+.radar-label--right { grid-column: 3; grid-row: 2; justify-self: start; text-align: left; }
+.radar-label--bottom { grid-column: 2; grid-row: 3; }
+.radar-label--left { grid-column: 1; grid-row: 2; justify-self: end; text-align: right; }
+.radar-chart-wrap { grid-column: 2; grid-row: 2; width: 200px; height: 200px; }
+.radar-chart { width: 100%; height: 100%; overflow: visible; }
+.radar-chart__grid { fill: none; stroke: rgba(20, 22, 43, 0.08); stroke-width: 1; }
+.radar-chart__axis { stroke: rgba(20, 22, 43, 0.08); stroke-width: 1; }
+.radar-chart__score { fill: rgba(108, 92, 231, 0.22); stroke: var(--aurora-violet); stroke-width: 2; stroke-linejoin: round; }
+.radar-chart__dot { fill: var(--aurora-violet); }
+.radar-chart__dot--empty { fill: var(--ink-faint); }
+
+.diagnosis-side-col { display: flex; flex-direction: column; gap: var(--space-2); }
+.diagnosis-side-card { display: flex; gap: 14px; align-items: flex-start; }
+.diagnosis-side-card__icon {
+  flex-shrink: 0;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.95rem;
+}
+.diagnosis-side-card--strengths .diagnosis-side-card__icon { background: var(--aurora-teal-soft); color: #0F9E8B; }
+.diagnosis-side-card--weaknesses .diagnosis-side-card__icon { background: rgba(255, 138, 101, 0.16); color: var(--aurora-orange); }
+.diagnosis-side-card--focus { border-color: var(--aurora-violet); background: var(--aurora-violet-soft); }
+.diagnosis-side-card--focus .diagnosis-side-card__icon { background: var(--aurora-violet); color: #fff; }
+@media (max-width: 760px) {
+  .diagnosis-layout { grid-template-columns: 1fr; }
+}
 .urgency-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
 .urgency-dot--high { background: var(--aurora-coral); }
 .urgency-dot--medium { background: #F4B740; }
@@ -1038,6 +1128,15 @@ input[type="range"]:disabled { opacity: 0.4; }
   .step-actions { flex-direction: column-reverse; align-items: stretch; }
   .step-actions .btn { width: 100%; }
   .next-action-card { flex-direction: column; align-items: flex-start; }
+  .wizard-shell { flex-direction: column; min-height: 0; }
+  .wizard-sidebar { flex: 0 0 auto; padding: var(--space-2); }
+  .wizard-sidebar__logo { margin-bottom: var(--space-2); }
+  .wizard-sidebar__steps { flex-direction: row; overflow-x: auto; gap: 4px; }
+  .wizard-step { flex-direction: column; align-items: center; text-align: center; flex: 0 0 auto; width: 84px; gap: 6px; }
+  .wizard-step:not(:last-child)::after { display: none; }
+  .wizard-step__label { font-size: 0.72rem; }
+  .wizard-step__status { display: none; }
+  .wizard-main { padding: var(--space-3) var(--space-2); }
 }
 @media (max-width: 480px) {
   .hero__title { font-size: 1.8rem; }

@@ -13,21 +13,22 @@
 
 <div id="uniora-nav"></div>
 
-<section class="page-section page-section--tight">
-  <div class="container container--narrow">
-    <div class="wizard-progress">
-      <div class="wizard-progress__bar"><div class="wizard-progress__fill" id="wizard-fill"></div></div>
-      <div class="wizard-progress__label" id="wizard-label">Шаг 1 из 6</div>
-    </div>
+<div class="wizard-shell">
+  <aside class="wizard-sidebar">
+    <div class="wizard-sidebar__logo">✦ Uniora</div>
+    <div class="wizard-sidebar__steps" id="wizard-steps"></div>
+  </aside>
+  <main class="wizard-main">
+    <div class="wizard-main__inner">
+      <div id="step-content"></div>
 
-    <div id="step-content"></div>
-
-    <div class="step-actions">
-      <button class="btn btn--secondary" id="btn-back">Назад</button>
-      <button class="btn btn--primary" id="btn-next">Далее</button>
+      <div class="step-actions">
+        <button class="btn btn--secondary" id="btn-back">Назад</button>
+        <button class="btn btn--primary" id="btn-next">Далее</button>
+      </div>
     </div>
-  </div>
-</section>
+  </main>
+</div>
 
 <script src="js/i18n.js"></script>
 <script src="js/data.js"></script>

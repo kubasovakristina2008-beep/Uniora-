@@ -25,6 +25,82 @@
     academic: "diagnosis.focusAcademic",
     documents: "diagnosis.focusDocuments"
   };
+  // Порядок категорий в readinessCategories() фиксирован (english, sat,
+  // academic, documents) — сопоставляем его с 4 сторонами ромба на диаграмме.
+  var AXIS_POSITION = ["top", "right", "bottom", "left"];
+
+  // Радар-диаграмма на 4 категории. Подписи — обычный HTML вокруг SVG (не
+  // текст внутри svg), чтобы длинные русские названия переносились нормально.
+  function buildRadarChart(categories) {
+    var size = 200, center = size / 2, radius = 78;
+    var svgNS = "http://www.w3.org/2000/svg";
+
+    function pointAt(index, r) {
+      var angle = index * (360 / categories.length) - 90;
+      var rad = angle * Math.PI / 180;
+      return { x: center + r * Math.cos(rad), y: center + r * Math.sin(rad) };
+    }
+
+    var svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("viewBox", "0 0 " + size + " " + size);
+    svg.setAttribute("class", "radar-chart");
+
+    [0.25, 0.5, 0.75, 1].forEach(function (frac) {
+      var pts = categories.map(function (c, i) { var p = pointAt(i, radius * frac); return p.x + "," + p.y; });
+      var poly = document.createElementNS(svgNS, "polygon");
+      poly.setAttribute("points", pts.join(" "));
+      poly.setAttribute("class", "radar-chart__grid");
+      svg.appendChild(poly);
+    });
+
+    categories.forEach(function (c, i) {
+      var p = pointAt(i, radius);
+      var line = document.createElementNS(svgNS, "line");
+      line.setAttribute("x1", center); line.setAttribute("y1", center);
+      line.setAttribute("x2", p.x); line.setAttribute("y2", p.y);
+      line.setAttribute("class", "radar-chart__axis");
+      svg.appendChild(line);
+    });
+
+    var scorePts = categories.map(function (c, i) {
+      var val = c.score === null ? 0 : c.score;
+      var p = pointAt(i, radius * (val / 100));
+      return p.x + "," + p.y;
+    });
+    var scorePoly = document.createElementNS(svgNS, "polygon");
+    scorePoly.setAttribute("points", scorePts.join(" "));
+    scorePoly.setAttribute("class", "radar-chart__score");
+    svg.appendChild(scorePoly);
+
+    categories.forEach(function (c, i) {
+      var val = c.score === null ? 0 : c.score;
+      var p = pointAt(i, radius * (val / 100));
+      var dot = document.createElementNS(svgNS, "circle");
+      dot.setAttribute("cx", p.x); dot.setAttribute("cy", p.y); dot.setAttribute("r", 4);
+      dot.setAttribute("class", "radar-chart__dot" + (c.score === null ? " radar-chart__dot--empty" : ""));
+      svg.appendChild(dot);
+    });
+
+    return svg;
+  }
+
+  function buildRadarCard(categories) {
+    var wrap = el("div", { class: "radar-card" });
+    categories.forEach(function (c, i) {
+      var isNoData = c.score === null;
+      var pos = AXIS_POSITION[i];
+      wrap.appendChild(
+        el("div", { class: "radar-label radar-label--" + pos }, [
+          el("div", { class: "radar-label__name" }, [t(CATEGORY_LABEL_KEY[c.key])]),
+          el("div", { class: "radar-label__value" }, [isNoData ? t("diagnosis.noData") : c.score + "%"])
+        ])
+      );
+    });
+    var chartWrap = el("div", { class: "radar-chart-wrap" });
+    chartWrap.appendChild(buildRadarChart(categories));
+    wrap.appendChild(chartWrap);
+    return wrap;
+  }
 
   function render() {
     var root = qs("#diagnosis-root");
@@ -59,35 +135,33 @@
       ])
     );
 
-    // Созвездие сильных и слабых сторон
-    root.appendChild(el("h3", {}, [t("diagnosis.constellationTitle")]));
-    var grid = el("div", { class: "diagnosis-grid" });
-    categories.forEach(function (c) {
-      var isNoData = c.score === null;
-      var label = t(CATEGORY_LABEL_KEY[c.key]);
-      grid.appendChild(
-        el("div", { class: "card" }, [
-          el("div", { class: "stat-card__label" }, [label]),
-          el("div", { class: "stat-card__value" }, [isNoData ? t("diagnosis.noData") : c.score + "%"]),
-          el("div", { class: "portfolio-strength__track", style: "margin-top:8px;" }, [
-            el("div", { class: "portfolio-strength__fill", style: "width:" + (isNoData ? 0 : c.score) + "%" })
-          ])
-        ])
-      );
-    });
-    root.appendChild(grid);
+    var layout = el("div", { class: "diagnosis-layout" });
 
-    // Сильные стороны / точки роста
-    root.appendChild(
-      el("div", { class: "diagnosis-grid", style: "margin-top:var(--space-3);" }, [
-        el("div", { class: "card" }, [
-          el("h3", { style: "margin-bottom:10px;" }, [t("diagnosis.strengths")]),
+    var leftCard = el("div", { class: "card diagnosis-radar-panel" }, [
+      el("h3", { style: "margin-bottom:2px;" }, [t("diagnosis.constellationTitle")])
+    ]);
+    leftCard.appendChild(buildRadarCard(categories));
+    layout.appendChild(leftCard);
+
+    var rightCol = el("div", { class: "diagnosis-side-col" });
+
+    rightCol.appendChild(
+      el("div", { class: "card diagnosis-side-card diagnosis-side-card--strengths" }, [
+        el("div", { class: "diagnosis-side-card__icon" }, ["✓"]),
+        el("div", {}, [
+          el("h3", { style: "margin-bottom:8px;" }, [t("diagnosis.strengths")]),
           sw.strengths.length
             ? el("div", { class: "strength-list" }, sw.strengths.map(function (c) { return el("span", { class: "chip chip--static" }, ["✓ " + t(CATEGORY_LABEL_KEY[c.key]) + " — " + c.score + "%"]); }))
             : el("p", { class: "muted", style: "margin:0;" }, [t("diagnosis.strengthsEmpty")])
-        ]),
-        el("div", { class: "card" }, [
-          el("h3", { style: "margin-bottom:10px;" }, [t("diagnosis.weaknesses")]),
+        ])
+      ])
+    );
+
+    rightCol.appendChild(
+      el("div", { class: "card diagnosis-side-card diagnosis-side-card--weaknesses" }, [
+        el("div", { class: "diagnosis-side-card__icon" }, ["!"]),
+        el("div", {}, [
+          el("h3", { style: "margin-bottom:8px;" }, [t("diagnosis.weaknesses")]),
           sw.weaknesses.length
             ? el("ul", { style: "margin:0;padding-left:18px;" }, sw.weaknesses.map(function (c) { return el("li", { style: "margin-bottom:6px;" }, [t(CATEGORY_LABEL_KEY[c.key]) + " — " + c.score + "%"]); }))
             : el("p", { class: "muted", style: "margin:0;" }, [t("diagnosis.weaknessesEmpty")])
@@ -95,17 +169,22 @@
       ])
     );
 
-    // Рекомендованный фокус
     if (sw.weaknesses.length) {
       var top = sw.weaknesses[0];
       var focusText = FOCUS_TEXT_KEY[top.key] ? t(FOCUS_TEXT_KEY[top.key]) : t("diagnosis.focusFallback");
-      root.appendChild(
-        el("div", { class: "card", style: "margin-top:var(--space-3);border-color:var(--aurora-violet);" }, [
-          el("h3", { style: "margin-bottom:6px;" }, [t("diagnosis.focusTitle")]),
-          el("p", { style: "margin:0;" }, [focusText])
+      rightCol.appendChild(
+        el("div", { class: "card diagnosis-side-card diagnosis-side-card--focus" }, [
+          el("div", { class: "diagnosis-side-card__icon" }, ["✦"]),
+          el("div", {}, [
+            el("h3", { style: "margin-bottom:6px;" }, [t("diagnosis.focusTitle")]),
+            el("p", { style: "margin:0;" }, [focusText])
+          ])
         ])
       );
     }
+
+    layout.appendChild(rightCol);
+    root.appendChild(layout);
 
     root.appendChild(
       el("div", { class: "disclaimer", style: "margin-top:var(--space-3);" }, [
