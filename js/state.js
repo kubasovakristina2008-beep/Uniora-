@@ -17,10 +17,14 @@
       countries: [],
       showAllCountries: false,
       achievements: {
+        projects: [],
+        hackathons: [],
+        research: [],
         olympiads: [],
-        certificates: [],
         volunteering: [],
-        projects: []
+        internships: [],
+        sport: [],
+        custom: []
       },
       exams: {
         ielts: { value: null, notTaken: false },

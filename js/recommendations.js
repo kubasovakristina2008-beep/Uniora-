@@ -266,7 +266,8 @@
     }
 
     var exSummary = M.examsTakenSummary(profile);
-    var achCount = D.ACHIEVEMENT_CATEGORIES.reduce(function (sum, c) { return sum + profile.achievements[c.key].length; }, 0);
+    var achCount = D.ACHIEVEMENT_CATEGORIES.reduce(function (sum, c) { return sum + profile.achievements[c.key].length; }, 0)
+      + profile.achievements[D.CUSTOM_ACHIEVEMENT_CATEGORY.key].length;
     if (achCount === 0 && exSummary.count === 0) {
       root.appendChild(
         el("div", { class: "card", style: "margin-bottom:20px;border-color:var(--aurora-violet);" }, [

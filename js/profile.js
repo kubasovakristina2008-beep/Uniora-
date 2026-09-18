@@ -280,21 +280,47 @@
     body.appendChild(addBtn);
   }
 
+  function renderTip(body, tip) {
+    var open = false;
+    var content = el("div", { class: "field-hint", style: "margin-top:8px;display:none;" }, [
+      el("div", {}, [tip.intro]),
+      el("ul", { style: "margin:6px 0 0;padding-left:18px;" }, tip.items.map(function (item) {
+        return el("li", { style: "margin-bottom:4px;" }, [item]);
+      }))
+    ]);
+    var toggle = el("button", { type: "button", class: "btn btn--ghost btn--sm", style: "margin-top:8px;" }, ["💡 " + tip.title]);
+    toggle.addEventListener("click", function () {
+      open = !open;
+      content.style.display = open ? "block" : "none";
+    });
+    body.appendChild(toggle);
+    body.appendChild(content);
+  }
+
+  function renderAchievementCategory(root, cat, isFirst) {
+    var body = makeAccordionSection(root, cat.key, cat.label);
+    if (cat.note) body.appendChild(el("div", { class: "field-hint", style: "margin-bottom:10px;" }, [cat.note]));
+    renderRecordCategory(body, {
+      getList: function () { return draft.achievements[cat.key]; },
+      placeholderA: cat.placeholderA,
+      placeholderB: cat.placeholderB,
+      onChange: function () { updateMeta(cat.key); }
+    });
+    if (cat.tip) renderTip(body, cat.tip);
+    if (isFirst) qs("#acc-" + cat.key).classList.add("accordion-section--open");
+  }
+
   function renderStep4(container) {
     heading(container, "Шаг 4 из 6", "Расскажи о своих достижениях", "Это усилит эссе и поможет подобрать вузы с грантами для сильных абитуриентов. Всё опционально.");
     var root = el("div", { id: "accordion-root" });
     container.appendChild(root);
 
     D.ACHIEVEMENT_CATEGORIES.forEach(function (cat, i) {
-      var body = makeAccordionSection(root, cat.key, cat.label);
-      renderRecordCategory(body, {
-        getList: function () { return draft.achievements[cat.key]; },
-        placeholderA: cat.placeholderA,
-        placeholderB: cat.placeholderB,
-        onChange: function () { updateMeta(cat.key); }
-      });
-      if (i === 0) root.firstChild.classList.add("accordion-section--open");
+      renderAchievementCategory(root, cat, i === 0);
     });
+
+    container.appendChild(el("div", { class: "field-label", style: "margin-top:20px;" }, ["Дополнительно"]));
+    renderAchievementCategory(container, D.CUSTOM_ACHIEVEMENT_CATEGORY, false);
   }
 
   // ---------------- Step 5 — экзамены ----------------
@@ -394,7 +420,8 @@
     var grid = el("div", { class: "summary-grid" });
 
     var gradeOpt = GRADE_OPTIONS.filter(function (g) { return g.id === draft.gradeLevel; })[0];
-    var achCount = D.ACHIEVEMENT_CATEGORIES.reduce(function (sum, c) { return sum + draft.achievements[c.key].length; }, 0);
+    var achCount = D.ACHIEVEMENT_CATEGORIES.reduce(function (sum, c) { return sum + draft.achievements[c.key].length; }, 0)
+      + draft.achievements[D.CUSTOM_ACHIEVEMENT_CATEGORY.key].length;
     var exSummary = M.examsTakenSummary(draft);
 
     var rows = [
