@@ -315,13 +315,26 @@
       key: "olympiads", label: "Олимпиады", placeholderA: "Название олимпиады", placeholderB: "Результат (место, год)",
       note: "Учитываются только олимпиады республиканского или международного уровня — школьные и городские почти не рассматриваются приёмными комиссиями за рубежом."
     },
-    { key: "volunteering", label: "Волонтёрство", placeholderA: "Где и чем занимались", placeholderB: "Часы/период, год" },
+    { key: "volunteering", label: "Волонтёрство", variant: "volunteering" },
     { key: "internships", label: "Стажировки", placeholderA: "Где стажировались", placeholderB: "Чем занимались / результат" },
     {
-      key: "sport", label: "Спортивные достижения", placeholderA: "Вид спорта / соревнование", placeholderB: "Результат, уровень, год",
+      key: "sport", label: "Спортивные достижения", variant: "sport",
       note: "Наша позиция (не научный факт): спортивные достижения ценятся почти всегда, независимо от специальности и страны."
     }
   ];
+
+  // Виды спорта (чипы) и уровни достижения — для категории "Спорт".
+  var SPORTS = ["Футбол", "Баскетбол", "Плавание", "Лёгкая атлетика", "Единоборства", "Теннис", "Шахматы", "Волейбол", "Другое"];
+  var SPORT_LEVELS = [
+    { id: "school", label: "Школьный" },
+    { id: "city", label: "Городской" },
+    { id: "regional", label: "Областной" },
+    { id: "republican", label: "Республиканский" },
+    { id: "international", label: "Международный" }
+  ];
+
+  // Сферы волонтёрства (чипы) — выбираются на уровне отдельной записи.
+  var VOLUNTEER_SPHERES = ["Экология", "Соц. помощь", "Мед. волонтёрство", "Образование", "Культура", "Другое"];
 
   var CUSTOM_ACHIEVEMENT_CATEGORY = {
     key: "custom", label: "Своё достижение",
@@ -536,6 +549,9 @@
     EVENTS: EVENTS,
     ACHIEVEMENT_CATEGORIES: ACHIEVEMENT_CATEGORIES,
     CUSTOM_ACHIEVEMENT_CATEGORY: CUSTOM_ACHIEVEMENT_CATEGORY,
+    SPORTS: SPORTS,
+    SPORT_LEVELS: SPORT_LEVELS,
+    VOLUNTEER_SPHERES: VOLUNTEER_SPHERES,
     DOCUMENT_ITEMS: DOCUMENT_ITEMS,
     COUNTRY_INFO: COUNTRY_INFO,
     COUNTRY_DIMENSION_LABELS: COUNTRY_DIMENSION_LABELS,

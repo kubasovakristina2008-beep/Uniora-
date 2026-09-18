@@ -216,6 +216,10 @@
 
   // ---------------- Step 4 — достижения (4 свободные категории) ----------------
   function sectionMeta(key) {
+    if (key === "sport") {
+      var sportCount = draft.achievements.sport.practices.length;
+      return sportCount ? sportCount + " вид(а)" : "Не указано";
+    }
     var n = (draft.achievements[key] || []).length;
     return n ? n + " запис(ей)" : "Не указано";
   }
@@ -280,6 +284,108 @@
     body.appendChild(addBtn);
   }
 
+  function chipToggleGroup(container, options, getArray, onChange) {
+    var group = el("div", { class: "chip-group" });
+    options.forEach(function (label) {
+      var chip = el("button", {
+        type: "button",
+        class: "chip" + (getArray().indexOf(label) !== -1 ? " chip--selected" : "")
+      }, [label]);
+      chip.addEventListener("click", function () {
+        var arr = getArray();
+        var idx = arr.indexOf(label);
+        if (idx >= 0) arr.splice(idx, 1); else arr.push(label);
+        chip.classList.toggle("chip--selected");
+        onChange();
+      });
+      group.appendChild(chip);
+    });
+    container.appendChild(group);
+  }
+
+  // ---- Спорт: виды спорта чипами (мультивыбор) + уровень достижения ----
+  function renderSportCategory(root, cat) {
+    var body = makeAccordionSection(root, cat.key, cat.label);
+    if (cat.note) body.appendChild(el("div", { class: "field-hint", style: "margin-bottom:10px;" }, [cat.note]));
+
+    body.appendChild(el("div", { class: "field-label" }, ["Виды спорта"]));
+    chipToggleGroup(body, D.SPORTS, function () { return draft.achievements.sport.practices; }, function () {
+      persist();
+      updateMeta("sport");
+    });
+
+    body.appendChild(el("div", { class: "field-label", style: "margin-top:14px;" }, ["Уровень достижения"]));
+    var select = el("select", { class: "text-input" });
+    select.appendChild(el("option", { value: "" }, ["Не выбрано"]));
+    D.SPORT_LEVELS.forEach(function (lvl) {
+      select.appendChild(el("option", { value: lvl.id, selected: draft.achievements.sport.level === lvl.id ? "selected" : null }, [lvl.label]));
+    });
+    select.addEventListener("change", function () { draft.achievements.sport.level = select.value || null; persist(); });
+    body.appendChild(select);
+  }
+
+  // ---- Волонтёрство: список записей (где / сфера / часы / результат) ----
+  function renderVolunteeringRecords(body, opts) {
+    var list = el("div", { class: "record-list" });
+    body.appendChild(list);
+
+    function addRow(record) {
+      var card = el("div", { class: "record-card" });
+      var del = el("button", { type: "button", class: "icon-btn", title: "Удалить" }, ["✕"]);
+      card.appendChild(el("div", { class: "record-card__top" }, [
+        el("span", { class: "record-card__title" }, ["Место волонтёрства"]),
+        del
+      ]));
+
+      var placeInput = el("input", { class: "text-input", type: "text", placeholder: "Где — например, «Приют для животных «Дружок»»", value: record.place || "" });
+      placeInput.addEventListener("input", function () { record.place = placeInput.value; persist(); });
+      card.appendChild(el("div", { class: "record-card__row" }, [placeInput]));
+
+      card.appendChild(el("div", { class: "record-card__label" }, ["Сфера"]));
+      var sphereGroup = el("div", { class: "chip-group" });
+      D.VOLUNTEER_SPHERES.forEach(function (label) {
+        var chip = el("button", { type: "button", class: "chip" + (record.sphere === label ? " chip--selected" : "") }, [label]);
+        chip.addEventListener("click", function () {
+          record.sphere = record.sphere === label ? null : label;
+          Array.prototype.forEach.call(sphereGroup.children, function (c) { c.classList.remove("chip--selected"); });
+          if (record.sphere === label) chip.classList.add("chip--selected");
+          persist();
+        });
+        sphereGroup.appendChild(chip);
+      });
+      card.appendChild(sphereGroup);
+
+      var hoursInput = el("input", { class: "text-input", type: "number", min: "0", placeholder: "Часов (необязательно)", value: record.hours || "" });
+      hoursInput.addEventListener("input", function () { record.hours = hoursInput.value ? Number(hoursInput.value) : null; persist(); });
+      var descInput = el("input", { class: "text-input", type: "text", placeholder: "Результат / что делал(а) (необязательно)", value: record.description || "" });
+      descInput.addEventListener("input", function () { record.description = descInput.value; persist(); });
+      card.appendChild(el("div", { class: "record-card__row", style: "margin-top:10px;" }, [hoursInput, descInput]));
+
+      del.addEventListener("click", function () {
+        var arr = opts.getList();
+        var idx = arr.indexOf(record);
+        if (idx >= 0) arr.splice(idx, 1);
+        list.removeChild(card);
+        persist();
+        opts.onChange();
+      });
+
+      list.appendChild(card);
+    }
+
+    opts.getList().forEach(addRow);
+
+    var addBtn = el("button", { type: "button", class: "btn btn--secondary btn--sm" }, ["+ Добавить запись"]);
+    addBtn.addEventListener("click", function () {
+      var record = { place: "", sphere: null, hours: null, description: "" };
+      opts.getList().push(record);
+      addRow(record);
+      persist();
+      opts.onChange();
+    });
+    body.appendChild(addBtn);
+  }
+
   function renderTip(body, tip) {
     var open = false;
     var content = el("div", { class: "field-hint", style: "margin-top:8px;display:none;" }, [
@@ -298,6 +404,21 @@
   }
 
   function renderAchievementCategory(root, cat, isFirst) {
+    if (cat.variant === "sport") {
+      renderSportCategory(root, cat);
+      if (isFirst) qs("#acc-" + cat.key).classList.add("accordion-section--open");
+      return;
+    }
+    if (cat.variant === "volunteering") {
+      var vBody = makeAccordionSection(root, cat.key, cat.label);
+      if (cat.note) vBody.appendChild(el("div", { class: "field-hint", style: "margin-bottom:10px;" }, [cat.note]));
+      renderVolunteeringRecords(vBody, {
+        getList: function () { return draft.achievements[cat.key]; },
+        onChange: function () { updateMeta(cat.key); }
+      });
+      if (isFirst) qs("#acc-" + cat.key).classList.add("accordion-section--open");
+      return;
+    }
     var body = makeAccordionSection(root, cat.key, cat.label);
     if (cat.note) body.appendChild(el("div", { class: "field-hint", style: "margin-bottom:10px;" }, [cat.note]));
     renderRecordCategory(body, {
@@ -423,8 +544,7 @@
     var grid = el("div", { class: "summary-grid" });
 
     var gradeOpt = GRADE_OPTIONS.filter(function (g) { return g.id === draft.gradeLevel; })[0];
-    var achCount = D.ACHIEVEMENT_CATEGORIES.reduce(function (sum, c) { return sum + draft.achievements[c.key].length; }, 0)
-      + draft.achievements[D.CUSTOM_ACHIEVEMENT_CATEGORY.key].length;
+    var achCount = C.totalAchievementCount(draft.achievements, D.ACHIEVEMENT_CATEGORIES, D.CUSTOM_ACHIEVEMENT_CATEGORY.key);
     var exSummary = M.examsTakenSummary(draft);
 
     var rows = [
@@ -460,6 +580,7 @@
 
   function init() {
     draft = clone(S.getProfile());
+    if (Array.isArray(draft.achievements.sport)) draft.achievements.sport = { practices: [], level: null };
     currentStep = 1;
     var params = new URLSearchParams(window.location.search);
     var stepParam = parseInt(params.get("step"), 10);

@@ -23,7 +23,7 @@
         olympiads: [],
         volunteering: [],
         internships: [],
-        sport: [],
+        sport: { practices: [], level: null },
         custom: []
       },
       exams: {

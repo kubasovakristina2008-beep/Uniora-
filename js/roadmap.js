@@ -458,6 +458,44 @@
     container.appendChild(panel);
   }
 
+  // Статичная витрина — не зависит от профиля/специальности/страны.
+  var EFFORT_FOCUS_ITEMS = [
+    { title: "Публикация / research с научным руководителем", note: "Сильнее всего выделяет профиль на конкурентных зарубежных программах.", level: "high" },
+    { title: "Запущенный проект (продукт, стартап, open-source)", note: "Показывает инициативу и практическое применение навыков.", level: "high" },
+    { title: "Профильная олимпиада (международный/республиканский уровень)", note: "Особенно ценится для STEM-направлений.", level: "high", qualifier: "особенно для STEM-специальностей" },
+    { title: "Хакатоны и кейс-чемпионаты", note: "Хорошо показывает командную работу и прикладные навыки.", level: "medium" },
+    { title: "Волонтёрство и социальные инициативы", note: "Важно для liberal arts и holistic-admission вузов.", level: "medium", qualifier: "зависит от типа вуза и направления" },
+    { title: "Стажировка", note: "Особенно ценна для бизнес- и инженерных направлений.", level: "medium", qualifier: "зависит от направления" }
+  ];
+  var EFFORT_LEVEL_LABEL = { high: "Высокое", medium: "Среднее" };
+
+  function renderEffortPanel(container) {
+    var panel = el("div", { class: "effort-panel" }, [
+      el("div", { class: "effort-panel__title" }, ["На что направить усилия"]),
+      el("div", { class: "effort-panel__subtitle" }, ["Экспертная оценка команды Uniora: насколько активность обычно усиливает заявку."])
+    ]);
+    EFFORT_FOCUS_ITEMS.forEach(function (item) {
+      panel.appendChild(
+        el("div", { class: "effort-row" }, [
+          el("div", { class: "effort-row__text" }, [
+            el("div", { class: "effort-row__label" }, [item.title]),
+            el("div", { class: "effort-row__note" }, [item.note])
+          ]),
+          el("div", { class: "effort-row__level" }, [
+            el("span", { class: "effort-badge effort-badge--" + item.level }, [EFFORT_LEVEL_LABEL[item.level]]),
+            item.qualifier ? el("div", { class: "effort-row__qualifier" }, ["(" + item.qualifier + ")"]) : null
+          ])
+        ])
+      );
+    });
+    panel.appendChild(
+      el("div", { class: "effort-panel__disclaimer" }, [
+        "Это наша собственная оценка, основанная на изучении требований вузов, а не официальная статистика или гарантия результата."
+      ])
+    );
+    container.appendChild(panel);
+  }
+
   function renderUpcomingDeadlines(container, list) {
     var dated = list
       .filter(function (s) { return s.status !== "done"; })
@@ -632,6 +670,7 @@
     );
 
     renderLegendPanel(root);
+    renderEffortPanel(root);
     renderViewToggle(root);
     root.appendChild(el("div", { id: "upcoming-deadlines-mount" }));
     refreshUpcomingDeadlines();

@@ -236,6 +236,21 @@
     return (prefix || "id") + "-" + Math.random().toString(36).slice(2, 9);
   }
 
+  // Кол-во записей в одной категории достижений — работает и для обычных
+  // категорий (массив записей), и для "Спорта" ({ practices: [], level }).
+  function achievementCount(achievements, key) {
+    var v = achievements[key];
+    if (Array.isArray(v)) return v.length;
+    if (v && Array.isArray(v.practices)) return v.practices.length;
+    return 0;
+  }
+
+  function totalAchievementCount(achievements, categories, customKey) {
+    var sum = categories.reduce(function (s, c) { return s + achievementCount(achievements, c.key); }, 0);
+    if (customKey) sum += achievementCount(achievements, customKey);
+    return sum;
+  }
+
   global.Uniora = global.Uniora || {};
   global.Uniora.common = {
     STEPS: STEPS,
@@ -255,6 +270,8 @@
     portfolioBar: portfolioBar,
     starField: starField,
     debounce: debounce,
-    uid: uid
+    uid: uid,
+    achievementCount: achievementCount,
+    totalAchievementCount: totalAchievementCount
   };
 })(window);

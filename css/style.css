@@ -500,6 +500,18 @@ section.page-section--tight { padding: var(--space-3) 0; }
   flex-shrink: 0;
 }
 
+.record-card {
+  border: 1px solid rgba(20, 22, 43, 0.1);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  background: rgba(20, 22, 43, 0.02);
+}
+.record-card__top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
+.record-card__title { font-size: 0.8rem; font-weight: 600; color: var(--ink-faint); }
+.record-card__label { font-size: 0.78rem; color: var(--ink-faint); margin: 10px 0 6px; }
+.record-card__row { display: flex; gap: 10px; flex-wrap: wrap; }
+.record-card__row .text-input { flex: 1 1 160px; min-width: 0; }
+
 .slider-field { margin-bottom: var(--space-3); }
 .slider-field__top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
 .slider-field__value { font-family: var(--font-head); font-size: 1.3rem; font-weight: 700; color: var(--aurora-violet); }
@@ -605,8 +617,8 @@ input[type="range"]:disabled { opacity: 0.4; }
 .fact-row--positive .fact-row__dot { background: var(--aurora-teal); }
 .fact-row--negative .fact-row__dot { background: var(--aurora-coral); }
 .fact-row--gap .fact-row__dot { background: #F4B740; }
-.uni-card__actions { display: flex; gap: 8px; margin-top: auto; padding-top: 10px; }
-.uni-card__actions .btn { flex: 1; }
+.uni-card__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 10px; }
+.uni-card__actions .btn { flex: 1 1 auto; min-width: 130px; }
 .fav-btn {
   border: 1.5px solid rgba(20,22,43,0.14);
   background: var(--paper-raised);
@@ -718,6 +730,27 @@ input[type="range"]:disabled { opacity: 0.4; }
 .priority-panel-light .priority-row { border-bottom-color: rgba(20, 22, 43, 0.08); }
 .priority-panel-light .priority-row__label { color: var(--ink); }
 .priority-panel-light .priority-row__note { color: var(--ink-faint); }
+
+.effort-panel {
+  background: rgba(244, 241, 255, 0.05);
+  border: 1px solid rgba(244, 241, 255, 0.12);
+  border-radius: var(--radius-card);
+  padding: var(--space-2) var(--space-2) var(--space-3);
+  margin: 0 0 var(--space-3);
+}
+.effort-panel__title { font-family: var(--font-head); font-weight: 700; font-size: 1.05rem; color: var(--lavender); margin-bottom: 4px; }
+.effort-panel__subtitle { font-size: 0.82rem; color: var(--lavender-faint); margin-bottom: 4px; }
+.effort-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(244,241,255,0.08); flex-wrap: wrap; }
+.effort-row:last-child { border-bottom: none; }
+.effort-row__text { flex: 1 1 220px; min-width: 0; }
+.effort-row__label { font-weight: 600; font-size: 0.88rem; color: var(--lavender); }
+.effort-row__note { font-size: 0.78rem; color: var(--lavender-faint); margin-top: 2px; }
+.effort-row__level { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; max-width: 220px; }
+.effort-badge { padding: 5px 12px; border-radius: var(--radius-pill); font-size: 0.74rem; font-weight: 700; white-space: nowrap; }
+.effort-badge--high { background: var(--aurora-violet); color: #fff; }
+.effort-badge--medium { background: rgba(108, 92, 231, 0.2); color: var(--lavender); border: 1px solid rgba(108,92,231,0.45); }
+.effort-row__qualifier { font-size: 0.7rem; color: var(--lavender-faint); text-align: right; }
+.effort-panel__disclaimer { font-size: 0.76rem; color: var(--lavender-faint); background: rgba(244,241,255,0.04); border-radius: var(--radius-sm); padding: 10px 12px; margin-top: var(--space-2); }
 
 .constellation-wrap {
   position: relative;
@@ -948,6 +981,9 @@ input[type="range"]:disabled { opacity: 0.4; }
 @media (max-width: 480px) {
   .hero__title { font-size: 1.8rem; }
   .option-grid { grid-template-columns: repeat(2, 1fr); }
+  .uni-card__actions { flex-direction: column; align-items: stretch; }
+  .uni-card__actions .btn { min-width: 0; }
+  .uni-card__actions .fav-btn { align-self: center; }
 }
 
 /* ---------------- Печать плана Roadmap ---------------- */
