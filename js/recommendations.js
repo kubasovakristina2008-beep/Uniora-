@@ -153,6 +153,13 @@
     { key: "sat", label: "SAT", min: 400, max: 1600, step: 10, decimals: 0, fallback: 1000 }
   ];
 
+  function pluralUni(n) {
+    var mod10 = n % 10, mod100 = n % 100;
+    if (mod10 === 1 && mod100 !== 11) return "вуз";
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return "вуза";
+    return "вузов";
+  }
+
   function renderWhatIf() {
     var mount = qs("#whatif-bar");
     if (!mount) return;
@@ -185,17 +192,39 @@
         return;
       }
       var labelMap = { match: "Match", reach: "Reach", safety: "Safety" };
-      var list = el("div", { class: "whatif-list" });
+
+      var changes = [];
       after.forEach(function (m) {
         var prev = beforeMap[m.university.id];
-        var changed = prev && prev.category !== m.category;
+        if (prev && prev.category !== m.category) {
+          changes.push({ name: m.university.name, from: prev.category, to: m.category });
+        }
+      });
+
+      if (!changes.length) {
+        resultBox.appendChild(el("p", { class: "muted", style: "margin:8px 0 0;" }, ["При этом значении категории вузов в вашей подборке не меняются."]));
+        return;
+      }
+
+      var groups = {};
+      var order = [];
+      changes.forEach(function (c) {
+        var key = c.from + "→" + c.to;
+        if (!groups[key]) { groups[key] = { from: c.from, to: c.to, names: [] }; order.push(key); }
+        groups[key].names.push(c.name);
+      });
+
+      var list = el("div", { class: "whatif-list" });
+      order.forEach(function (key) {
+        var g = groups[key];
+        var n = g.names.length;
+        var verb = n === 1 ? "переходит" : "переходят";
         list.appendChild(
           el("div", { class: "whatif-row-item" }, [
-            el("span", { class: "whatif-row-item__name" }, [m.university.name]),
-            el("span", { class: "whatif-row-item__pct" }, [(prev ? prev.matchPercent : m.matchPercent) + "% → " + m.matchPercent + "%"]),
-            changed
-              ? el("span", { class: "whatif-row-item__change" }, [labelMap[prev.category] + " → " + labelMap[m.category]])
-              : el("span", { class: "muted" }, ["без изменений"])
+            el("span", { class: "whatif-row-item__change" }, [
+              n + " " + pluralUni(n) + " " + verb + " из " + labelMap[g.from] + " в " + labelMap[g.to]
+            ]),
+            el("span", { class: "whatif-row-item__names" }, [g.names.join(", ")])
           ])
         );
       });
@@ -218,9 +247,10 @@
 
     var card = el("div", { class: "card whatif-card" }, [
       el("div", { class: "field-label" }, ["Симулятор «Что если» — подвинь баллы IELTS/TOEFL/SAT"]),
-      el("p", { class: "muted", style: "margin-top:-6px;" }, ["Не сохраняет значения в профиль — только показывает, как изменились бы категории и процент совпадения."]),
+      el("p", { class: "muted", style: "margin-top:-6px;" }, ["Не сохраняет значения в профиль — только показывает, как изменились бы категории вузов в вашей подборке."]),
       sliders,
-      resultBox
+      resultBox,
+      el("p", { class: "muted", style: "margin-top:10px;font-size:0.78rem;" }, ["Это предварительный пересчёт по нашей собственной логике подбора, а не гарантия результата поступления."])
     ]);
     mount.appendChild(card);
     recompute();

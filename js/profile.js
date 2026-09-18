@@ -466,17 +466,28 @@
     // opts: {label, min, max, step, decimals, maxText, info, extraNote, getState, setValue}
     var state = opts.getState();
     var wrap = el("div", { class: "slider-field" });
+
     var valueLabel = el("span", { class: "slider-field__value" + (state.notTaken || state.value === null ? " slider-field__value--muted" : "") }, [
       state.notTaken ? "Не сдавал(а)" : formatExamValue(opts.decimals, state.value)
     ]);
-    wrap.appendChild(el("div", { class: "slider-field__top" }, [el("span", { class: "field-label", style: "margin:0;" }, [opts.label]), valueLabel]));
+
+    var notTakenCheckbox;
+    var toggleInline = el("div", { class: "toggle-inline" }, [
+      el("span", { class: "muted" }, ["Ещё не сдавал(а)"]),
+      el("label", { class: "switch" }, [
+        (notTakenCheckbox = el("input", { type: "checkbox", checked: state.notTaken ? "checked" : null })),
+        el("span", { class: "switch__track" })
+      ])
+    ]);
+    wrap.appendChild(el("div", { class: "slider-field__top" }, [el("span", { class: "field-label", style: "margin:0;" }, [opts.label]), toggleInline]));
+
+    wrap.appendChild(el("div", { class: "slider-field__value-row" }, [valueLabel]));
 
     var sliderVal = state.value !== null && state.value !== undefined ? state.value : opts.min;
     var slider = el("input", {
       type: "range", min: String(opts.min), max: String(opts.max), step: String(opts.step), value: String(sliderVal),
       disabled: state.notTaken ? "disabled" : null
     });
-    var notTakenCheckbox;
     slider.addEventListener("input", function () {
       var v = parseFloat(slider.value);
       opts.setValue(v, false);
@@ -490,13 +501,6 @@
     if (opts.info) wrap.appendChild(el("div", { class: "field-hint" }, [opts.info]));
     if (opts.extraNote) wrap.appendChild(el("div", { class: "field-hint" }, [opts.extraNote]));
 
-    var toggleRow = el("div", { class: "toggle-row" }, [
-      el("span", { class: "muted" }, ["Ещё не сдавал(а)"]),
-      el("label", { class: "switch" }, [
-        (notTakenCheckbox = el("input", { type: "checkbox", checked: state.notTaken ? "checked" : null })),
-        el("span", { class: "switch__track" })
-      ])
-    ]);
     notTakenCheckbox.addEventListener("change", function () {
       var checked = notTakenCheckbox.checked;
       var current = opts.getState();
@@ -513,7 +517,7 @@
       }
       persist();
     });
-    wrap.appendChild(toggleRow);
+
     container.appendChild(wrap);
   }
 
