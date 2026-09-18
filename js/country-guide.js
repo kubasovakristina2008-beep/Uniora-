@@ -7,10 +7,12 @@
   var C = global.Uniora.common;
   var S = global.Uniora.state;
   var D = global.Uniora.data;
+  var I = global.Uniora.i18n;
   var el = C.el;
   var qs = C.qs;
+  var t = I.t;
+  var tf = I.tf;
 
-  var WEIGHT_LABEL = { high: "Высокий", medium: "Средний", low: "Низкий" };
   var activeCountry = D.COUNTRIES[0].id;
 
   function render() {
@@ -22,7 +24,7 @@
 
     var tabs = el("div", { class: "priority-tabs" });
     D.COUNTRIES.forEach(function (c) {
-      var tab = el("button", { type: "button", class: "priority-tab" + (c.id === activeCountry ? " priority-tab--active" : "") }, [c.flag + " " + c.label]);
+      var tab = el("button", { type: "button", class: "priority-tab" + (c.id === activeCountry ? " priority-tab--active" : "") }, [c.flag + " " + tf(c.label)]);
       tab.addEventListener("click", function () { activeCountry = c.id; render(); });
       tabs.appendChild(tab);
     });
@@ -33,8 +35,8 @@
 
     wrap.appendChild(
       el("div", { class: "card", style: "margin-bottom:16px;" }, [
-        el("p", { style: "margin:0 0 8px;" }, [info.blurb]),
-        el("span", { class: "chip chip--static" }, [uniCount + " вуз(ов) в базе Uniora"])
+        el("p", { style: "margin:0 0 8px;" }, [tf(info.blurb)]),
+        el("span", { class: "chip chip--static" }, [uniCount + " " + t("countryGuide.uniCountInBase")])
       ])
     );
 
@@ -44,32 +46,33 @@
       card.appendChild(
         el("div", { class: "priority-row" }, [
           el("div", {}, [
-            el("div", { class: "priority-row__label" }, [D.COUNTRY_DIMENSION_LABELS[dim]]),
-            el("div", { class: "priority-row__note" }, [d.note])
+            el("div", { class: "priority-row__label" }, [tf(D.COUNTRY_DIMENSION_LABELS[dim])]),
+            el("div", { class: "priority-row__note" }, [tf(d.note)])
           ]),
-          el("span", { class: "badge badge--weight-" + d.level }, [WEIGHT_LABEL[d.level]])
+          el("span", { class: "badge badge--weight-" + d.level }, [tf(D.PRIORITY_LEVEL_LABELS[d.level])])
         ])
       );
     });
     wrap.appendChild(card);
     root.appendChild(wrap);
 
-    root.appendChild(el("div", { class: "disclaimer", style: "margin-top:var(--space-3);" }, [D.COUNTRY_METHOD_DISCLAIMER]));
+    root.appendChild(el("div", { class: "disclaimer", style: "margin-top:var(--space-3);" }, [tf(D.COUNTRY_METHOD_DISCLAIMER)]));
 
     var selected = (profile.countries || []).indexOf(activeCountry) !== -1;
     root.appendChild(
       el("div", { class: "step-actions", style: "margin-top:32px;" }, [
-        el("a", { class: "btn btn--secondary", href: "index.html" }, ["← На главную"]),
+        el("a", { class: "btn btn--secondary", href: "index.html" }, [t("countryGuide.toHome")]),
         (function () {
+          var countryLabel = C.countryLabel(activeCountry);
           var btn = el("button", { type: "button", class: "btn btn--primary" }, [
-            selected ? ("✓ " + C.countryLabel(activeCountry) + " уже выбрана") : ("Выбрать " + C.countryLabel(activeCountry) + " в анкете")
+            selected ? t("countryGuide.alreadySelected", { country: countryLabel }) : t("countryGuide.selectInProfile", { country: countryLabel })
           ]);
           if (selected) { btn.disabled = true; return btn; }
           btn.addEventListener("click", function () {
             var list = (profile.countries || []).slice();
             list.push(activeCountry);
             S.updateProfile({ countries: list });
-            C.toast(C.countryLabel(activeCountry) + " добавлена в профиль");
+            C.toast(t("countryGuide.addedToProfile", { country: countryLabel }));
             render();
           });
           return btn;

@@ -10,14 +10,17 @@
   var S = global.Uniora.state;
   var M = global.Uniora.match;
   var D = global.Uniora.data;
+  var I = global.Uniora.i18n;
   var el = C.el;
   var qs = C.qs;
+  var t = I.t;
+  var tf = I.tf;
 
   var starRefs = {};
   var stopStarfield = null;
   var viewMode = "constellation"; // "constellation" | "list"
 
-  var DOC_STATUS_LABEL = { not_started: "Не начато", in_progress: "В процессе", done: "Готово" };
+  var DOC_STATUS_LABEL_KEY = { not_started: "roadmap.docNotStarted", in_progress: "roadmap.docInProgress", done: "roadmap.docDone" };
   var DOC_STATUS_ORDER = ["not_started", "in_progress", "done"];
 
   // Ключи TOEFL/SAT, у которых конкретно этот вуз указывает числовой порог
@@ -58,31 +61,30 @@
   function buildJourneyDefs(profile, targetUni) {
     var otherKeys = numericSecondaryExams(targetUni);
     var otherExamsDesc = otherKeys.length
-      ? "Нужны: " + otherKeys.map(function (k) { return SECONDARY_EXAM_LABELS[k] + " от " + targetUni[k]; }).join(", ") + "."
-      : "У этого вуза нет отдельных числовых порогов по TOEFL/SAT в источнике.";
+      ? t("roadmap.journeyOtherExamsDescNeed", { list: otherKeys.map(function (k) { return SECONDARY_EXAM_LABELS[k] + " " + targetUni[k]; }).join(", ") })
+      : t("roadmap.journeyOtherExamsDescNone");
 
-    var submissionDeadline = targetUni.deadlineMain || targetUni.deadlineEarly || null;
+    var submissionDeadlineRaw = targetUni.deadlineMain || targetUni.deadlineEarly || null;
+    var submissionDeadline = submissionDeadlineRaw !== null ? tf(submissionDeadlineRaw) : null;
     var deadlineText = submissionDeadline
-      ? "Дедлайн подачи: " + submissionDeadline + " (данные прошлого цикла, уточняйте на сайте)."
-      : "Точный дедлайн подачи не собран в источнике для этой программы — уточните на официальном сайте вуза.";
+      ? t("roadmap.journeyDeadlineText", { deadline: submissionDeadline })
+      : t("roadmap.journeyDeadlineUnknown");
 
     return [
-      { id: "journey-anketa", icon: "📝", shortLabel: "Анкета", title: "Анкета заполнена", description: "Специальность и страна указаны в профиле.", auto: "anketa" },
+      { id: "journey-anketa", icon: "📝", shortLabel: t("roadmap.journeyAnketaShort"), title: t("roadmap.journeyAnketaTitle"), description: t("roadmap.journeyAnketaDesc"), auto: "anketa" },
       {
-        id: "journey-english", icon: "🗣️", shortLabel: "IELTS",
-        title: typeof targetUni.ielts === "number" ? "Английский язык — IELTS от " + targetUni.ielts : "Английский язык — IELTS",
-        description: typeof targetUni.ielts === "number"
-          ? "Добавьте актуальный балл IELTS в анкете (шаг 5)."
-          : "У этого вуза нет числового порога IELTS в источнике — добавьте балл в анкете на всякий случай, но ориентируйтесь на сайт вуза.",
+        id: "journey-english", icon: "🗣️", shortLabel: t("roadmap.journeyEnglishShort"),
+        title: typeof targetUni.ielts === "number" ? t("roadmap.journeyEnglishTitleWithScore", { score: targetUni.ielts }) : t("roadmap.journeyEnglishTitle"),
+        description: typeof targetUni.ielts === "number" ? t("roadmap.journeyEnglishDescWithScore") : t("roadmap.journeyEnglishDesc"),
         auto: "english"
       },
-      { id: "journey-otherexams", icon: "📚", shortLabel: "TOEFL/SAT", title: "TOEFL / SAT", description: otherExamsDesc, auto: "otherExams" },
-      { id: "journey-documents", icon: "📄", shortLabel: "Документы", title: "Сбор документов", description: "Транскрипт, рекомендательные письма и языковой сертификат — готовы (см. чек-лист ниже).", auto: "documents" },
-      { id: "journey-motivation", icon: "✍️", shortLabel: "Письмо", title: "Мотивационное письмо", description: "Отметьте как готовое в чек-листе документов ниже.", auto: "motivation" },
-      { id: "journey-submission", icon: "📮", shortLabel: "Подача", title: "Подача заявки", description: deadlineText, deadline: submissionDeadline },
-      { id: "journey-interview", icon: "🎥", shortLabel: "Собеседование", title: "Собеседование", description: "Если вуз проводит собеседование — обычно вскоре после подачи заявки." },
-      { id: "journey-visa", icon: "🛂", shortLabel: "Виза", title: "Виза и разрешение на учёбу", description: "Начинайте оформление сразу после письма о зачислении от вуза." },
-      { id: "journey-enrollment", icon: "🎓", shortLabel: "Зачисление", title: "Зачисление", description: "Ваша цель — " + targetUni.name + "." }
+      { id: "journey-otherexams", icon: "📚", shortLabel: t("roadmap.journeyOtherExamsShort"), title: t("roadmap.journeyOtherExamsTitle"), description: otherExamsDesc, auto: "otherExams" },
+      { id: "journey-documents", icon: "📄", shortLabel: t("roadmap.journeyDocumentsShort"), title: t("roadmap.journeyDocumentsTitle"), description: t("roadmap.journeyDocumentsDesc"), auto: "documents" },
+      { id: "journey-motivation", icon: "✍️", shortLabel: t("roadmap.journeyMotivationShort"), title: t("roadmap.journeyMotivationTitle"), description: t("roadmap.journeyMotivationDesc"), auto: "motivation" },
+      { id: "journey-submission", icon: "📮", shortLabel: t("roadmap.journeySubmissionShort"), title: t("roadmap.journeySubmissionTitle"), description: deadlineText, deadline: submissionDeadline },
+      { id: "journey-interview", icon: "🎥", shortLabel: t("roadmap.journeyInterviewShort"), title: t("roadmap.journeyInterviewTitle"), description: t("roadmap.journeyInterviewDesc") },
+      { id: "journey-visa", icon: "🛂", shortLabel: t("roadmap.journeyVisaShort"), title: t("roadmap.journeyVisaTitle"), description: t("roadmap.journeyVisaDesc") },
+      { id: "journey-enrollment", icon: "🎓", shortLabel: t("roadmap.journeyEnrollmentShort"), title: t("roadmap.journeyEnrollmentTitle"), description: t("roadmap.journeyEnrollmentDesc", { uni: targetUni.name }) }
     ];
   }
 
@@ -90,28 +92,36 @@
   // Дедлайны в базе — данные прошлого цикла подачи (сезонный ориентир, не
   // подтверждённая дата этого года). Парсим день/месяц и проецируем на
   // ближайшее будущее — только как мягкую подсказку "скоро", а не точный факт.
-  var RU_MONTHS = {
+  // Месяцы распознаются и в русском, и в английском варианте дедлайна.
+  var MONTHS = {
     "январ": 0, "феврал": 1, "март": 2, "апрел": 3, "ма": 4, "июн": 5,
-    "июл": 6, "август": 7, "сентябр": 8, "октябр": 9, "ноябр": 10, "декабр": 11
+    "июл": 6, "август": 7, "сентябр": 8, "октябр": 9, "ноябр": 10, "декабр": 11,
+    "january": 0, "february": 1, "march": 2, "april": 3, "may": 4, "june": 5,
+    "july": 6, "august ": 7, "september": 8, "october": 9, "november": 10, "december": 11
   };
   function monthFromWord(word) {
     word = (word || "").toLowerCase();
-    var keys = Object.keys(RU_MONTHS);
-    for (var i = 0; i < keys.length; i++) if (word.indexOf(keys[i]) === 0) return RU_MONTHS[keys[i]];
+    var keys = Object.keys(MONTHS);
+    for (var i = 0; i < keys.length; i++) if (word.indexOf(keys[i]) === 0) return MONTHS[keys[i]];
     return null;
   }
   function parseApproxDeadline(text) {
     if (!text) return null;
-    var m = text.match(/(\d{1,2})\s+([а-яё]+)/i);
+    var m = text.match(/(\d{1,2})\s+([a-zа-яё]+)/i);
     if (m) {
       var month = monthFromWord(m[2]);
       if (month !== null) return projectToFuture(parseInt(m[1], 10), month);
     }
-    var m2 = text.match(/(начал[оа]|конец|середин[аеу])\s+([а-яё]+)/i);
+    var m1b = text.match(/([a-zа-яё]+)\s+(\d{1,2})/i);
+    if (m1b) {
+      var monthB = monthFromWord(m1b[1]);
+      if (monthB !== null) return projectToFuture(parseInt(m1b[2], 10), monthB);
+    }
+    var m2 = text.match(/(начал[оа]|конец|середин[аеу]|early|end of|mid-?)\s*([a-zа-яё]+)/i);
     if (m2) {
       var month2 = monthFromWord(m2[2]);
       if (month2 !== null) {
-        var day2 = /^начал/i.test(m2[1]) ? 5 : /^середин/i.test(m2[1]) ? 15 : 25;
+        var day2 = /^(начал|early)/i.test(m2[1]) ? 5 : /^(середин|mid)/i.test(m2[1]) ? 15 : 25;
         return projectToFuture(day2, month2);
       }
     }
@@ -224,9 +234,9 @@
       mount.appendChild(
         el("div", { class: "next-action-card" }, [
           el("div", {}, [
-            el("div", { class: "next-action-card__eyebrow" }, ["Маршрут пройден 🎓"]),
-            el("div", { class: "next-action-card__title" }, ["Все шаги к этой цели выполнены"]),
-            el("p", { class: "next-action-card__desc" }, ["Отличная работа! Можно выбрать вторую цель для сравнения (в «Сравнении») и повторить путь параллельно."])
+            el("div", { class: "next-action-card__eyebrow" }, [t("roadmap.routeCompleteEyebrow")]),
+            el("div", { class: "next-action-card__title" }, [t("roadmap.routeCompleteTitle")]),
+            el("p", { class: "next-action-card__desc" }, [t("roadmap.routeCompleteText")])
           ])
         ])
       );
@@ -236,11 +246,11 @@
     mount.appendChild(
       el("div", { class: "next-action-card" }, [
         el("div", {}, [
-          el("div", { class: "next-action-card__eyebrow" }, ["Следующий шаг"]),
+          el("div", { class: "next-action-card__eyebrow" }, [t("roadmap.nextStepEyebrow")]),
           el("div", { class: "next-action-card__title" }, [(star.icon || "✦") + " " + star.title]),
-          el("p", { class: "next-action-card__desc" }, [star.description || "Отметьте выполненным, когда сделаете."])
+          el("p", { class: "next-action-card__desc" }, [star.description || t("roadmap.nextStepFallback")])
         ]),
-        el("button", { type: "button", class: "btn btn--dark", onclick: function () { toggleStar(star.id); } }, ["Отметить выполненным"])
+        el("button", { type: "button", class: "btn btn--dark", onclick: function () { toggleStar(star.id); } }, [t("roadmap.markDone")])
       ])
     );
   }
@@ -289,7 +299,7 @@
       if (shouldHaveLabel) ref.button.classList.add("star-btn--near");
       if (shouldHaveLabel && !ref.label) {
         var dateHint = shortDate(s.deadline);
-        var text = (s.shortLabel || s.title) + (dateHint ? " · до " + dateHint : "");
+        var text = (s.shortLabel || s.title) + (dateHint ? " · " + t("roadmap.until") + " " + dateHint : "");
         ref.label = el("span", { class: "star-btn__label" }, [text]);
         ref.button.appendChild(ref.label);
       } else if (!shouldHaveLabel && ref.label) {
@@ -351,7 +361,7 @@
       var mark = el("span", { class: "star-btn__mark" }, [el("span", { class: "star-btn__glyph" }, [star.icon || "✦"])]);
       var isNear = nearIds.indexOf(star.id) !== -1;
       var dateHint = shortDate(star.deadline);
-      var labelText = isNear ? (star.shortLabel || star.title) + (dateHint ? " · до " + dateHint : "") : null;
+      var labelText = isNear ? (star.shortLabel || star.title) + (dateHint ? " · " + t("roadmap.until") + " " + dateHint : "") : null;
       var label = labelText ? el("span", { class: "star-btn__label" }, [labelText]) : null;
       var urgent = isUrgent(star);
       var classes = "star-btn";
@@ -383,7 +393,7 @@
       var isDone = star.status === "done";
       var check = el("button", {
         type: "button", class: "checklist-check" + (isDone ? " is-checked" : ""),
-        title: isDone ? "Вернуть в работу" : "Отметить выполненным"
+        title: isDone ? t("roadmap.returnToWork") : t("roadmap.markDone")
       }, [isDone ? "✓" : ""]);
       check.addEventListener("click", function () { toggleStar(star.id); });
 
@@ -393,7 +403,7 @@
         el("div", { class: "checklist-row" + (isDone ? " checklist-row--done" : "") + (isNext ? " checklist-row--next" : "") + (urgent ? " checklist-row--urgent" : "") }, [
           check,
           el("div", { class: "checklist-body" }, [
-            el("div", { class: "checklist-title" }, [(star.icon || "✦") + " " + star.title, dateHint ? el("span", { class: "checklist-deadline" }, ["до " + dateHint]) : null]),
+            el("div", { class: "checklist-title" }, [(star.icon || "✦") + " " + star.title, dateHint ? el("span", { class: "checklist-deadline" }, [t("roadmap.until") + " " + dateHint]) : null]),
             star.description ? el("div", { class: "checklist-desc" }, [star.description]) : null
           ])
         ])
@@ -405,13 +415,13 @@
 
   function renderViewToggle(container) {
     var wrap = el("div", { class: "view-toggle" });
-    var tabs = [{ id: "constellation", label: "✦ Созвездие" }, { id: "list", label: "☰ Список" }];
+    var tabs = [{ id: "constellation", label: t("roadmap.constellationTab") }, { id: "list", label: t("roadmap.listTab") }];
     var buttons = [];
-    tabs.forEach(function (t) {
-      var btn = el("button", { type: "button", class: "view-toggle__tab" + (viewMode === t.id ? " view-toggle__tab--active" : "") }, [t.label]);
+    tabs.forEach(function (tab) {
+      var btn = el("button", { type: "button", class: "view-toggle__tab" + (viewMode === tab.id ? " view-toggle__tab--active" : "") }, [tab.label]);
       btn.addEventListener("click", function () {
-        if (viewMode === t.id) return;
-        viewMode = t.id;
+        if (viewMode === tab.id) return;
+        viewMode = tab.id;
         buttons.forEach(function (b, i) { b.classList.toggle("view-toggle__tab--active", tabs[i].id === viewMode); });
         rebuildMount();
       });
@@ -425,33 +435,31 @@
     var panel = el("div", { class: "priority-panel" });
     var body = el("div", { class: "priority-panel__body" });
     var header = el("button", { type: "button", class: "priority-panel__header" }, [
-      el("span", {}, ["✦ Как читать карту"]),
+      el("span", {}, [t("roadmap.readMap")]),
       el("span", {}, ["▾"])
     ]);
     header.addEventListener("click", function () { panel.classList.toggle("priority-panel--open"); });
 
     body.appendChild(
       el("div", { class: "legend-row" }, [
-        el("div", { class: "legend-row__item" }, [el("span", { class: "legend-dot", style: "background:rgba(244,241,255,0.3);" }), "Ожидает"]),
-        el("div", { class: "legend-row__item" }, [el("span", { class: "legend-dot legend-dot--ring" }), "Вы здесь — ближайший шаг"]),
-        el("div", { class: "legend-row__item" }, [el("span", { class: "legend-dot", style: "background:#fff;box-shadow:0 0 8px 3px rgba(108,92,231,0.6);" }), "Выполнено"]),
-        el("div", { class: "legend-row__item" }, [el("span", { class: "legend-dot", style: "background:#fff;box-shadow:0 0 8px 3px rgba(255,138,101,0.6);" }), "Дедлайн скоро (≤30 дней)"])
+        el("div", { class: "legend-row__item" }, [el("span", { class: "legend-dot", style: "background:rgba(244,241,255,0.3);" }), t("roadmap.legendWaiting")]),
+        el("div", { class: "legend-row__item" }, [el("span", { class: "legend-dot legend-dot--ring" }), t("roadmap.legendHere")]),
+        el("div", { class: "legend-row__item" }, [el("span", { class: "legend-dot", style: "background:#fff;box-shadow:0 0 8px 3px rgba(108,92,231,0.6);" }), t("roadmap.legendDone")]),
+        el("div", { class: "legend-row__item" }, [el("span", { class: "legend-dot", style: "background:#fff;box-shadow:0 0 8px 3px rgba(255,138,101,0.6);" }), t("roadmap.legendUrgent")])
       ])
     );
     body.appendChild(
       el("div", { class: "legend-row", style: "margin-top:6px;" }, [
-        el("div", { class: "legend-row__item" }, ["📝 анкета"]),
-        el("div", { class: "legend-row__item" }, ["🗣️📚 экзамены"]),
-        el("div", { class: "legend-row__item" }, ["📄✍️ документы"]),
-        el("div", { class: "legend-row__item" }, ["📮 подача"]),
-        el("div", { class: "legend-row__item" }, ["🎥 собеседование"]),
-        el("div", { class: "legend-row__item" }, ["🛂 виза"]),
-        el("div", { class: "legend-row__item" }, ["🎓 цель"])
+        el("div", { class: "legend-row__item" }, [t("roadmap.legendAnketa")]),
+        el("div", { class: "legend-row__item" }, [t("roadmap.legendExams")]),
+        el("div", { class: "legend-row__item" }, [t("roadmap.legendDocs")]),
+        el("div", { class: "legend-row__item" }, [t("roadmap.legendSubmission")]),
+        el("div", { class: "legend-row__item" }, [t("roadmap.legendInterview")]),
+        el("div", { class: "legend-row__item" }, [t("roadmap.legendVisa")]),
+        el("div", { class: "legend-row__item" }, [t("roadmap.legendGoal")])
       ])
     );
-    body.appendChild(el("p", { class: "muted", style: "margin:8px 0 0;font-size:0.76rem;" }, [
-      "Подписи и даты на карте показаны только у 2–3 ближайших шагов — остальные звёзды остаются точками, чтобы карта оставалась читаемой."
-    ]));
+    body.appendChild(el("p", { class: "muted", style: "margin:8px 0 0;font-size:0.76rem;" }, [t("roadmap.legendFooter")]));
 
     panel.appendChild(header);
     panel.appendChild(body);
@@ -459,22 +467,14 @@
   }
 
   // Статичная витрина — не зависит от профиля/специальности/страны.
-  var EFFORT_FOCUS_ITEMS = [
-    { title: "Публикация / research с научным руководителем", note: "Сильнее всего выделяет профиль на конкурентных зарубежных программах.", level: "high" },
-    { title: "Запущенный проект (продукт, стартап, open-source)", note: "Показывает инициативу и практическое применение навыков.", level: "high" },
-    { title: "Профильная олимпиада (международный/республиканский уровень)", note: "Особенно ценится для STEM-направлений.", level: "high", qualifier: "особенно для STEM-специальностей" },
-    { title: "Хакатоны и кейс-чемпионаты", note: "Хорошо показывает командную работу и прикладные навыки.", level: "medium" },
-    { title: "Волонтёрство и социальные инициативы", note: "Важно для liberal arts и holistic-admission вузов.", level: "medium", qualifier: "зависит от типа вуза и направления" },
-    { title: "Стажировка", note: "Особенно ценна для бизнес- и инженерных направлений.", level: "medium", qualifier: "зависит от направления" }
-  ];
-  var EFFORT_LEVEL_LABEL = { high: "Высокое", medium: "Среднее" };
-
   function renderEffortPanel(container) {
     var panel = el("div", { class: "effort-panel" }, [
-      el("div", { class: "effort-panel__title" }, ["На что направить усилия"]),
-      el("div", { class: "effort-panel__subtitle" }, ["Экспертная оценка команды Uniora: насколько активность обычно усиливает заявку."])
+      el("div", { class: "effort-panel__title" }, [t("roadmap.effortTitle")]),
+      el("div", { class: "effort-panel__subtitle" }, [t("roadmap.effortSubtitle")])
     ]);
-    EFFORT_FOCUS_ITEMS.forEach(function (item) {
+    var items = tf(I.UI.roadmap.effortItems);
+    var levelLabel = { high: t("roadmap.effortHigh"), medium: t("roadmap.effortMedium") };
+    items.forEach(function (item) {
       panel.appendChild(
         el("div", { class: "effort-row" }, [
           el("div", { class: "effort-row__text" }, [
@@ -482,16 +482,14 @@
             el("div", { class: "effort-row__note" }, [item.note])
           ]),
           el("div", { class: "effort-row__level" }, [
-            el("span", { class: "effort-badge effort-badge--" + item.level }, [EFFORT_LEVEL_LABEL[item.level]]),
+            el("span", { class: "effort-badge effort-badge--" + item.level }, [levelLabel[item.level]]),
             item.qualifier ? el("div", { class: "effort-row__qualifier" }, ["(" + item.qualifier + ")"]) : null
           ])
         ])
       );
     });
     panel.appendChild(
-      el("div", { class: "effort-panel__disclaimer" }, [
-        "Это наша собственная оценка, основанная на изучении требований вузов, а не официальная статистика или гарантия результата."
-      ])
+      el("div", { class: "effort-panel__disclaimer" }, [t("roadmap.effortDisclaimer")])
     );
     container.appendChild(panel);
   }
@@ -506,7 +504,7 @@
     if (!dated.length) return;
 
     var strip = el("div", { class: "upcoming-deadlines" }, [
-      el("span", { class: "upcoming-deadlines__label" }, ["Ближайшие дедлайны"])
+      el("span", { class: "upcoming-deadlines__label" }, [t("roadmap.upcomingDeadlines")])
     ]);
     dated.forEach(function (d) {
       strip.appendChild(
@@ -527,8 +525,8 @@
 
     wrap.appendChild(
       el("div", { class: "flex items-center justify-between", style: "flex-wrap:wrap;gap:8px;" }, [
-        el("div", { class: "field-label", style: "color:var(--lavender);margin:0;" }, ["Документы на подачу — " + targetUni.name]),
-        el("span", { class: "badge badge--weight-medium" }, [doneCount + " / " + applicable.length + " готово к подаче"])
+        el("div", { class: "field-label", style: "color:var(--lavender);margin:0;" }, [t("roadmap.documentsForApplication", { uni: targetUni.name })]),
+        el("span", { class: "badge badge--weight-medium" }, [t("roadmap.readyToSubmit", { done: doneCount, total: applicable.length })])
       ])
     );
 
@@ -536,7 +534,7 @@
     applicable.forEach(function (item) {
       var current = (profile.documents || {})[item.key] || "not_started";
       var row = el("div", { class: "doc-row" }, [
-        el("span", { class: "doc-row__label" }, [item.label]),
+        el("span", { class: "doc-row__label" }, [tf(item.label)]),
         el("div", { class: "doc-status-group" })
       ]);
       var group = row.querySelector(".doc-status-group");
@@ -544,7 +542,7 @@
         var chip = el("button", {
           type: "button",
           class: "doc-status-chip" + (current === statusKey ? " doc-status-chip--active doc-status-chip--" + statusKey : "")
-        }, [DOC_STATUS_LABEL[statusKey]]);
+        }, [t(DOC_STATUS_LABEL_KEY[statusKey])]);
         chip.addEventListener("click", function () {
           var patch = { documents: {} };
           patch.documents[item.key] = statusKey;
@@ -563,16 +561,16 @@
   function renderEvents(container, profile) {
     var events = D.EVENTS.filter(function (e) { return e.majors.some(function (m) { return (profile.majors || []).indexOf(m) !== -1; }); });
     if (!events.length) return;
-    container.appendChild(el("h3", { style: "margin-top:var(--space-4);color:var(--lavender);" }, ["Мероприятия для твоей специальности"]));
+    container.appendChild(el("h3", { style: "margin-top:var(--space-4);color:var(--lavender);" }, [t("roadmap.eventsForMajor")]));
     var grid = el("div", { class: "event-list" });
     events.forEach(function (ev) {
       grid.appendChild(
         el("div", { class: "event-card" }, [
           el("div", { class: "event-card__title" }, [ev.name]),
-          el("div", { class: "event-card__meta" }, [ev.type + " · " + ev.level + " · " + ev.format + " · " + ev.timing]),
-          el("p", { style: "margin:0 0 8px;color:var(--lavender-soft);" }, [ev.whyBoost]),
-          ev.limitation ? el("p", { class: "muted", style: "margin:0;font-size:0.76rem;" }, ["Ограничение: " + ev.limitation]) : null,
-          el("div", { class: "event-card__actions" }, [el("a", { class: "btn btn--secondary btn--sm", href: ev.website, target: "_blank", rel: "noopener" }, ["Сайт"])])
+          el("div", { class: "event-card__meta" }, [tf(ev.type) + " · " + tf(ev.level) + " · " + tf(ev.format) + " · " + tf(ev.timing)]),
+          el("p", { style: "margin:0 0 8px;color:var(--lavender-soft);" }, [tf(ev.whyBoost)]),
+          ev.limitation ? el("p", { class: "muted", style: "margin:0;font-size:0.76rem;" }, [t("roadmap.limitation") + " " + tf(ev.limitation)]) : null,
+          el("div", { class: "event-card__actions" }, [el("a", { class: "btn btn--secondary btn--sm", href: ev.website, target: "_blank", rel: "noopener" }, [t("roadmap.site")])])
         ])
       );
     });
@@ -585,21 +583,22 @@
     if (!mount) return;
     mount.innerHTML = "";
     var list = orderStars(S.getRoadmap());
+    var locale = I.getLang() === "en" ? "en-US" : "ru-RU";
 
-    mount.appendChild(el("h1", {}, ["План поступления — Uniora"]));
+    mount.appendChild(el("h1", {}, [t("roadmap.printTitle")]));
     mount.appendChild(el("p", {}, [targetUni.name + " · " + C.countryLabel(targetUni.country) + " · " + C.majorsLabel(profile.majors)]));
-    mount.appendChild(el("p", {}, ["Сформировано " + new Date().toLocaleDateString("ru-RU") + ". Личный план, не официальный документ и не гарантия поступления — сроки и требования вуза могут измениться, сверяйтесь с официальным сайтом приёмной комиссии."]));
+    mount.appendChild(el("p", {}, [t("roadmap.printGeneratedOn", { date: new Date().toLocaleDateString(locale) })]));
 
-    mount.appendChild(el("h2", {}, ["Обзор"]));
+    mount.appendChild(el("h2", {}, [t("roadmap.printOverview")]));
     var overview = el("div", { class: "print-plan__list" }, [
-      el("div", { class: "print-plan__row" }, ["Университет: " + targetUni.name]),
-      el("div", { class: "print-plan__row" }, ["Страна: " + targetUni.city + ", " + C.countryLabel(targetUni.country)]),
-      el("div", { class: "print-plan__row" }, ["Дедлайн подачи: " + targetUni.deadlineMain + " (прошлый цикл)"]),
-      el("div", { class: "print-plan__row" }, ["Стипендия: " + targetUni.scholarship])
+      el("div", { class: "print-plan__row" }, [t("roadmap.printUniversity") + " " + targetUni.name]),
+      el("div", { class: "print-plan__row" }, [t("roadmap.printCountry") + " " + tf(targetUni.city) + ", " + C.countryLabel(targetUni.country)]),
+      el("div", { class: "print-plan__row" }, [t("roadmap.printDeadline") + " " + tf(targetUni.deadlineMain) + " " + t("roadmap.printLastCycle")]),
+      el("div", { class: "print-plan__row" }, [t("roadmap.printScholarship") + " " + (targetUni.scholarship ? tf(targetUni.scholarship) : t("compare.noData"))])
     ]);
     mount.appendChild(overview);
 
-    mount.appendChild(el("h2", {}, ["Шаги маршрута"]));
+    mount.appendChild(el("h2", {}, [t("roadmap.printSteps")]));
     var stepsList = el("div", { class: "print-plan__list" });
     list.forEach(function (star, i) {
       stepsList.appendChild(
@@ -612,12 +611,12 @@
     });
     mount.appendChild(stepsList);
 
-    mount.appendChild(el("h2", {}, ["Документы на подачу"]));
+    mount.appendChild(el("h2", {}, [t("roadmap.printDocuments")]));
     var docsList = el("div", { class: "print-plan__list" });
     var docs = profile.documents || {};
     D.DOCUMENT_ITEMS.forEach(function (item) {
       if (item.onlyMajor && (profile.majors || []).indexOf(item.onlyMajor) === -1) return;
-      docsList.appendChild(el("div", { class: "print-plan__row" }, [item.label + " — " + (DOC_STATUS_LABEL[docs[item.key]] || "Не начато")]));
+      docsList.appendChild(el("div", { class: "print-plan__row" }, [tf(item.label) + " — " + t(DOC_STATUS_LABEL_KEY[docs[item.key]] || "roadmap.docNotStarted")]));
     });
     mount.appendChild(docsList);
   }
@@ -630,9 +629,9 @@
     if (!S.isProfileMinimal(profile)) {
       C.emptyState(root, {
         icon: "🗺️",
-        title: "Маршрут строится из профиля",
-        text: "Укажите специальность и страну в профиле — тогда появится карта шагов.",
-        actionLabel: "Заполнить профиль",
+        title: t("roadmap.emptyTitle"),
+        text: t("roadmap.emptyText"),
+        actionLabel: t("common.fillProfile"),
         actionHref: "profile.html"
       });
       return;
@@ -642,9 +641,9 @@
     if (!targetUni) {
       C.emptyState(root, {
         icon: "🎯",
-        title: "Выберите целевой вуз",
-        text: "Маршрут строится вокруг одной цели. Отметьте вуз «Сделать целью» на странице «Сравнение» или «Избранное».",
-        actionLabel: "К рекомендациям",
+        title: t("roadmap.emptyTargetTitle"),
+        text: t("roadmap.emptyTargetText"),
+        actionLabel: t("compare.toRecommendations"),
         actionHref: "recommendations.html"
       });
       return;
@@ -656,13 +655,13 @@
     root.appendChild(
       el("div", { class: "flex items-center justify-between", style: "flex-wrap:wrap;gap:12px;" }, [
         el("div", {}, [
-          el("h2", { style: "color:var(--lavender);margin-bottom:6px;" }, ["Твой путь к цели"]),
+          el("h2", { style: "color:var(--lavender);margin-bottom:6px;" }, [t("roadmap.heading")]),
           el("p", { style: "color:var(--lavender-faint);max-width:560px;margin-bottom:0;" }, [
-            targetUni.name + " · " + C.majorsLabel(freshProfile.majors) + " · 9 шагов от анкеты до зачисления"
+            t("roadmap.subtitle", { uni: targetUni.name, majors: C.majorsLabel(freshProfile.majors) })
           ])
         ]),
         (function () {
-          var btn = el("button", { type: "button", class: "btn btn--secondary btn--sm" }, ["🖨 Скачать план"]);
+          var btn = el("button", { type: "button", class: "btn btn--secondary btn--sm" }, [t("roadmap.downloadPlan")]);
           btn.addEventListener("click", function () { buildPrintPlan(S.getProfile(), targetUni); window.print(); });
           return btn;
         })()
@@ -685,8 +684,8 @@
 
     root.appendChild(
       el("div", { class: "step-actions", style: "margin-top:32px;" }, [
-        el("a", { class: "btn btn--secondary", href: "compare.html" }, ["← К сравнению"]),
-        el("a", { class: "btn btn--dark", href: "diagnosis.html" }, ["К диагностике"])
+        el("a", { class: "btn btn--secondary", href: "compare.html" }, [t("roadmap.toCompareBack")]),
+        el("a", { class: "btn btn--dark", href: "diagnosis.html" }, [t("roadmap.toDiagnosis")])
       ])
     );
   }

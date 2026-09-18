@@ -3,14 +3,19 @@
   "use strict";
 
   var data = global.Uniora.data;
+  var i18n = global.Uniora.i18n;
+  var t = i18n.t;
+  var tf = i18n.tf;
 
-  var STEPS = [
-    { key: "profile", href: "profile.html", label: "Профиль" },
-    { key: "diagnosis", href: "diagnosis.html", label: "Диагностика" },
-    { key: "recommendations", href: "recommendations.html", label: "Рекомендации" },
-    { key: "compare", href: "compare.html", label: "Сравнение" },
-    { key: "roadmap", href: "roadmap.html", label: "Roadmap" }
-  ];
+  function STEPS() {
+    return [
+      { key: "profile", href: "profile.html", label: t("nav.steps.profile") },
+      { key: "diagnosis", href: "diagnosis.html", label: t("nav.steps.diagnosis") },
+      { key: "recommendations", href: "recommendations.html", label: t("nav.steps.recommendations") },
+      { key: "compare", href: "compare.html", label: t("nav.steps.compare") },
+      { key: "roadmap", href: "roadmap.html", label: t("nav.steps.roadmap") }
+    ];
+  }
 
   function qs(sel, root) { return (root || document).querySelector(sel); }
   function qsa(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
@@ -39,10 +44,18 @@
 
   function getMajor(id) { return data.MAJORS.filter(function (m) { return m.id === id; })[0] || null; }
   function getCountry(id) { return data.COUNTRIES.filter(function (c) { return c.id === id; })[0] || null; }
-  function majorLabel(id) { var m = getMajor(id); return m ? m.label : "—"; }
-  function majorsLabel(ids) { return (ids && ids.length) ? ids.map(majorLabel).join(", ") : "Не указано"; }
-  function countryLabel(id) { var c = getCountry(id); return c ? c.label : id; }
+  function majorLabel(id) { var m = getMajor(id); return m ? tf(m.label) : "—"; }
+  function majorsLabel(ids) { return (ids && ids.length) ? ids.map(majorLabel).join(", ") : t("common.notSpecified"); }
+  function countryLabel(id) { var c = getCountry(id); return c ? tf(c.label) : id; }
   function countryFlag(id) { var c = getCountry(id); return c ? c.flag : ""; }
+
+  function renderLangSwitch() {
+    var current = i18n.getLang();
+    var next = current === "ru" ? "en" : "ru";
+    var btn = el("button", { type: "button", class: "lang-switch", title: t("nav.langTitle") }, [t("nav.langButton")]);
+    btn.addEventListener("click", function () { i18n.setLang(next); });
+    return btn;
+  }
 
   function renderNav(activeKey) {
     var mount = qs("#uniora-nav");
@@ -56,7 +69,7 @@
     inner.appendChild(logo);
 
     var steps = el("div", { class: "site-nav__steps" });
-    STEPS.forEach(function (step, i) {
+    STEPS().forEach(function (step, i) {
       var isActive = step.key === activeKey;
       var link = el(
         "a",
@@ -70,16 +83,19 @@
     });
     inner.appendChild(steps);
 
+    var rightGroup = el("div", { class: "site-nav__right" });
     var favLink = el(
       "a",
       {
         class: "site-nav__fav-link" + (activeKey === "favorites" ? " site-nav__fav-link--active" : ""),
         href: "favorites.html",
-        title: "Избранное"
+        title: t("nav.favorites")
       },
-      ["♥ Избранное"]
+      [t("nav.favorites")]
     );
-    inner.appendChild(favLink);
+    rightGroup.appendChild(favLink);
+    rightGroup.appendChild(renderLangSwitch());
+    inner.appendChild(rightGroup);
 
     mount.appendChild(inner);
   }
@@ -93,8 +109,8 @@
     if ((!profile.majors || !profile.majors.length) && (!profile.countries || profile.countries.length === 0)) {
       mount.appendChild(
         el("div", { class: "context-bar context-bar--empty" }, [
-          el("span", {}, ["Профиль ещё не заполнен"]),
-          el("a", { class: "btn btn--ghost btn--sm", href: "profile.html" }, ["Заполнить профиль"])
+          el("span", {}, [t("common.profileEmpty")]),
+          el("a", { class: "btn btn--ghost btn--sm", href: "profile.html" }, [t("common.fillProfile")])
         ])
       );
       return;
@@ -105,7 +121,7 @@
       chips.appendChild(el("span", { class: "chip chip--static" }, [majorLabel(m)]));
     });
     if (profile.showAllCountries) {
-      chips.appendChild(el("span", { class: "chip chip--static" }, ["Все страны"]));
+      chips.appendChild(el("span", { class: "chip chip--static" }, [t("common.allCountries")]));
     } else if (profile.countries && profile.countries.length) {
       profile.countries.forEach(function (c) {
         chips.appendChild(el("span", { class: "chip chip--static" }, [countryFlag(c) + " " + countryLabel(c)]));
@@ -113,7 +129,7 @@
     }
 
     mount.appendChild(
-      el("div", { class: "context-bar" }, [chips, el("a", { class: "btn btn--ghost btn--sm", href: "profile.html" }, ["Изменить"])])
+      el("div", { class: "context-bar" }, [chips, el("a", { class: "btn btn--ghost btn--sm", href: "profile.html" }, [t("common.change")])])
     );
   }
 
@@ -253,7 +269,7 @@
 
   global.Uniora = global.Uniora || {};
   global.Uniora.common = {
-    STEPS: STEPS,
+    STEPS: STEPS(),
     qs: qs,
     qsa: qsa,
     el: el,

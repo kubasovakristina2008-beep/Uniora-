@@ -6,6 +6,9 @@
   "use strict";
 
   var data = global.Uniora.data;
+  var i18n = global.Uniora.i18n;
+  var t = i18n.t;
+  var tf = i18n.tf;
 
   function fmtNum(n) {
     return Math.round(n * 10) / 10;
@@ -36,8 +39,8 @@
       var required = uni[key];
       if (required === null || required === undefined) return;
       var label = EXAM_LABELS[key];
-      if (typeof required === "string") {
-        textFacts.push({ exam: label, text: required });
+      if (typeof required === "string" || (typeof required === "object" && required !== null)) {
+        textFacts.push({ exam: label, text: tf(required) });
         return;
       }
       var userExam = profile.exams[key];
@@ -71,28 +74,30 @@
 
   function buildReasonFacts(uni, profile, signals) {
     var facts = [];
-    var countryLabel = (data.COUNTRIES.filter(function (c) { return c.id === uni.country; })[0] || {}).label;
+    var countryObj = data.COUNTRIES.filter(function (c) { return c.id === uni.country; })[0];
+    var countryLabel = countryObj ? tf(countryObj.label) : uni.country;
     var matchedMajors = (uni.majors || []).filter(function (m) { return (profile.majors || []).indexOf(m) !== -1; });
     var countryMatches = profile.showAllCountries || (profile.countries && profile.countries.indexOf(uni.country) !== -1);
 
+    function majorLabelOf(id) {
+      var m = data.MAJORS.filter(function (mm) { return mm.id === id; })[0];
+      return m ? tf(m.label) : id;
+    }
+
     if (matchedMajors.length && countryMatches) {
-      var majorLabels = matchedMajors.map(function (id) {
-        return (data.MAJORS.filter(function (m) { return m.id === id; })[0] || {}).label;
-      }).join(", ");
-      facts.push({ tone: "neutral", text: "Специальность «" + majorLabels + "» и страна " + countryLabel + " совпадают с вашим выбором в анкете." });
+      var majorLabels = matchedMajors.map(majorLabelOf).join(", ");
+      facts.push({ tone: "neutral", text: t("recommendations.majorMatchFact", { majors: majorLabels, country: countryLabel }) });
     } else {
-      var uniMajorLabels = (uni.majors || []).map(function (id) {
-        return (data.MAJORS.filter(function (m) { return m.id === id; })[0] || {}).label;
-      }).join(", ");
-      facts.push({ tone: "neutral", text: "Вуз предлагает: " + uniMajorLabels + " · " + countryLabel + "." });
-      if (!matchedMajors.length) facts.push({ tone: "gap", text: "Это не совпадает с выбранными в анкете специальностями — оценка показана справочно." });
-      else if (!countryMatches) facts.push({ tone: "gap", text: "Эта страна сейчас не выбрана в анкете — оценка показана справочно." });
+      var uniMajorLabels = (uni.majors || []).map(majorLabelOf).join(", ");
+      facts.push({ tone: "neutral", text: t("recommendations.uniOffersFact", { majors: uniMajorLabels, country: countryLabel }) });
+      if (!matchedMajors.length) facts.push({ tone: "gap", text: t("recommendations.majorMismatchFact") });
+      else if (!countryMatches) facts.push({ tone: "gap", text: t("recommendations.countryMismatchFact") });
     }
 
     signals.numericFacts.forEach(function (f) {
       var tone = f.margin >= 0 ? "positive" : "negative";
-      var text = f.exam + " " + fmtNum(f.userValue) + " у вас против минимума " + fmtNum(f.required) + " у вуза";
-      text += f.margin >= 0 ? " — порог пройден с запасом." : " — пока ниже порога, есть время подтянуть.";
+      var key = f.margin >= 0 ? "recommendations.examAboveFact" : "recommendations.examBelowFact";
+      var text = t(key, { exam: f.exam, user: String(fmtNum(f.userValue)), required: String(fmtNum(f.required)) });
       facts.push({ tone: tone, text: text });
     });
 
@@ -101,10 +106,10 @@
     });
 
     signals.gapExams.forEach(function (f) {
-      facts.push({ tone: "gap", text: "Вуз указывает порог по «" + f.exam + "» (от " + fmtNum(f.required) + "), но в анкете нет данных — добавьте балл для более точной картины." });
+      facts.push({ tone: "gap", text: t("recommendations.examGapFact", { exam: f.exam, required: String(fmtNum(f.required)) }) });
     });
 
-    facts.push({ tone: "neutral", text: "По данным прошлого цикла вуз принимал ориентировочно " + Math.round(uni.acceptanceRate * 100) + "% абитуриентов (демо-данные, не гарантия поступления)." });
+    facts.push({ tone: "neutral", text: t("recommendations.acceptanceRateFact", { rate: String(Math.round(uni.acceptanceRate * 100)) }) });
 
     return facts;
   }
@@ -177,10 +182,10 @@
     var documentsScore = Math.round(docScoreRaw * 100);
 
     return [
-      { key: "english", label: "Английский язык (IELTS/TOEFL)", score: englishScore },
-      { key: "sat", label: "SAT", score: satScore },
-      { key: "academic", label: "Академическая успеваемость (GPA)", score: academicScore },
-      { key: "documents", label: "Документы", score: documentsScore }
+      { key: "english", score: englishScore },
+      { key: "sat", score: satScore },
+      { key: "academic", score: academicScore },
+      { key: "documents", score: documentsScore }
     ];
   }
 

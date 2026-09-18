@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Uniora — персональный маршрут поступления</title>
+<title data-i18n="home.title">Uniora — персональный маршрут поступления</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -16,25 +16,25 @@
 <section class="hero">
   <canvas class="hero__canvas" id="hero-stars"></canvas>
   <div class="hero__inner">
-    <h1 class="hero__title">Твой новый день начинается здесь</h1>
-    <p class="hero__subtitle">
+    <h1 class="hero__title" data-i18n="home.heroTitle">Твой новый день начинается здесь</h1>
+    <p class="hero__subtitle" data-i18n="home.heroSubtitle">
       Uniora строит персональный маршрут поступления в зарубежный вуз — на основе твоего профиля,
       а не общего каталога. Честные рекомендации, понятные шаги, без вымышленных гарантий.
     </p>
     <div class="hero__actions">
-      <a href="profile.html" class="btn btn--primary">Построить маршрут</a>
+      <a href="profile.html" class="btn btn--primary" data-i18n="home.buildRoute">Построить маршрут</a>
     </div>
 
     <div class="route-preview">
-      <div class="route-preview__step"><span class="route-preview__dot"></span>Профиль</div>
+      <div class="route-preview__step"><span class="route-preview__dot"></span><span data-i18n="home.previewSteps.profile">Профиль</span></div>
       <span class="route-preview__arrow">→</span>
-      <div class="route-preview__step"><span class="route-preview__dot"></span>Диагностика</div>
+      <div class="route-preview__step"><span class="route-preview__dot"></span><span data-i18n="home.previewSteps.diagnosis">Диагностика</span></div>
       <span class="route-preview__arrow">→</span>
-      <div class="route-preview__step"><span class="route-preview__dot"></span>Рекомендации</div>
+      <div class="route-preview__step"><span class="route-preview__dot"></span><span data-i18n="home.previewSteps.recommendations">Рекомендации</span></div>
       <span class="route-preview__arrow">→</span>
-      <div class="route-preview__step"><span class="route-preview__dot"></span>Сравнение</div>
+      <div class="route-preview__step"><span class="route-preview__dot"></span><span data-i18n="home.previewSteps.compare">Сравнение</span></div>
       <span class="route-preview__arrow">→</span>
-      <div class="route-preview__step"><span class="route-preview__dot"></span>Roadmap</div>
+      <div class="route-preview__step"><span class="route-preview__dot"></span><span data-i18n="home.previewSteps.roadmap">Roadmap</span></div>
     </div>
   </div>
 </section>
@@ -42,24 +42,24 @@
 <section class="page-section">
   <div class="container">
     <div class="section-heading text-center" style="margin:0 auto var(--space-4);">
-      <span class="eyebrow">Как это работает</span>
-      <h2>Три шага от «не знаю, куда поступать» до маршрута с дедлайнами</h2>
+      <span class="eyebrow" data-i18n="home.howEyebrow">Как это работает</span>
+      <h2 data-i18n="home.howTitle">Три шага от «не знаю, куда поступать» до маршрута с дедлайнами</h2>
     </div>
     <div class="how-it-works">
       <div class="card how-card">
         <div class="how-card__num">1</div>
-        <h3>Расскажи о себе</h3>
-        <p>Класс, специальность (или мини-квиз, если пока не знаешь), страны, экзамены и достижения — 6 коротких шагов.</p>
+        <h3 data-i18n="home.how1Title">Расскажи о себе</h3>
+        <p data-i18n="home.how1Text">Класс, специальность (или мини-квиз, если пока не знаешь), страны, экзамены и достижения — 6 коротких шагов.</p>
       </div>
       <div class="card how-card">
         <div class="how-card__num">2</div>
-        <h3>Получи честную диагностику</h3>
-        <p>Портрет профиля человеческим языком: что уже сильно, где пробелы — без вымышленных процентов и баллов.</p>
+        <h3 data-i18n="home.how2Title">Получи честную диагностику</h3>
+        <p data-i18n="home.how2Text">Портрет профиля человеческим языком: что уже сильно, где пробелы — без вымышленных процентов и баллов.</p>
       </div>
       <div class="card how-card">
         <div class="how-card__num">3</div>
-        <h3>Иди по маршруту</h3>
-        <p>Рекомендации вузов с объяснением «почему», сравнение вариантов и Roadmap с дедлайнами и шагами.</p>
+        <h3 data-i18n="home.how3Title">Иди по маршруту</h3>
+        <p data-i18n="home.how3Text">Рекомендации вузов с объяснением «почему», сравнение вариантов и Roadmap с дедлайнами и шагами.</p>
       </div>
     </div>
   </div>
@@ -68,15 +68,15 @@
 <section class="page-section">
   <div class="container">
     <div class="section-heading text-center" style="margin:0 auto var(--space-4);">
-      <span class="eyebrow">Как это может выглядеть</span>
-      <h2>Иллюстративные примеры маршрута</h2>
-      <p class="muted">Условные сценарии для понимания логики продукта — не истории реальных людей и не гарантия такого же результата.</p>
+      <span class="eyebrow" data-i18n="home.examplesEyebrow">Как это может выглядеть</span>
+      <h2 data-i18n="home.examplesTitle">Иллюстративные примеры маршрута</h2>
+      <p class="muted" data-i18n="home.examplesSubtitle">Условные сценарии для понимания логики продукта — не истории реальных людей и не гарантия такого же результата.</p>
     </div>
     <div class="example-routes">
       <div class="card example-card">
-        <span class="badge example-card__badge">Иллюстративный пример</span>
-        <h3>11 класс · IT · США + Венгрия</h3>
-        <ol class="example-card__steps">
+        <span class="badge example-card__badge" data-i18n="home.exampleBadge">Иллюстративный пример</span>
+        <h3 data-i18n="home.example1Title">11 класс · IT · США + Венгрия</h3>
+        <ol class="example-card__steps" data-i18n-list="home.example1Steps">
           <li>Диагностика: сильные оценки, но нет олимпиад и исследовательских проектов — для США это высокий приоритет.</li>
           <li>В Roadmap появляется цель «поучаствовать в NASA Space Apps Challenge» и пробел «начать исследовательский проект».</li>
           <li>Рекомендации: BME (Safety) и MIT (Reach) — сравниваются на странице «Сравнение».</li>
@@ -84,9 +84,9 @@
         </ol>
       </div>
       <div class="card example-card">
-        <span class="badge example-card__badge">Иллюстративный пример</span>
-        <h3>9–10 класс · Медицина · Турция</h3>
-        <ol class="example-card__steps">
+        <span class="badge example-card__badge" data-i18n="home.exampleBadge">Иллюстративный пример</span>
+        <h3 data-i18n="home.example2Title">9–10 класс · Медицина · Турция</h3>
+        <ol class="example-card__steps" data-i18n-list="home.example2Steps">
           <li>Профиль показывает: для Турции вступительный экзамен (YÖS) — решающий фактор.</li>
           <li>Roadmap подсвечивает пробел по экзаменам и предлагает начать подготовку заранее — времени ещё много.</li>
           <li>Рекомендации: Hacettepe University (Match) — с честной пометкой об ограниченности данных по экзаменам.</li>
@@ -94,9 +94,9 @@
         </ol>
       </div>
       <div class="card example-card">
-        <span class="badge example-card__badge">Иллюстративный пример</span>
-        <h3>Выпускник(-ца) · Искусство · Италия</h3>
-        <ol class="example-card__steps">
+        <span class="badge example-card__badge" data-i18n="home.exampleBadge">Иллюстративный пример</span>
+        <h3 data-i18n="home.example3Title">Выпускник(-ца) · Искусство · Италия</h3>
+        <ol class="example-card__steps" data-i18n-list="home.example3Steps">
           <li>В анкете указано портфолио творческих работ — в диагностике это сразу «сильная сторона».</li>
           <li>Рекомендации: Politecnico di Milano (Match) и University of Bologna (Safety).</li>
           <li>В Roadmap — задача пополнить портфолио и чек-лист документов к подаче (дедлайны — данные прошлого цикла, сверяются на сайте).</li>
@@ -111,8 +111,8 @@
     <div class="trust-block">
       <div class="trust-block__icon">🧭</div>
       <div>
-        <h3 style="margin-bottom:6px;">Честно про методику</h3>
-        <p style="margin-bottom:0;">
+        <h3 style="margin-bottom:6px;" data-i18n="home.trustTitle">Честно про методику</h3>
+        <p style="margin-bottom:0;" data-i18n="home.trustText">
           Категории «Match / Reach / Safety» и приоритеты портфолио по странам — собственная качественная
           эвристика команды Uniora, а не официальная статистика вузов. Стоимость обучения нигде не используется
           как фильтр. Дедлайны — данные прошлого цикла подачи, всегда проверяйте актуальные даты на сайте вуза.
@@ -122,10 +122,11 @@
   </div>
 </section>
 
-<footer class="site-footer">
+<footer class="site-footer" data-i18n="home.footer">
   Uniora — демо-проект для LOCUS Startup Hackathon 2026. Данные учебные, не являются официальной статистикой вузов.
 </footer>
 
+<script src="js/i18n.js"></script>
 <script src="js/data.js"></script>
 <script src="js/state.js"></script>
 <script src="js/match.js"></script>

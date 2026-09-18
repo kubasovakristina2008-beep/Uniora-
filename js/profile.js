@@ -6,19 +6,24 @@
   var S = global.Uniora.state;
   var M = global.Uniora.match;
   var D = global.Uniora.data;
+  var I = global.Uniora.i18n;
   var el = C.el;
   var qs = C.qs;
+  var t = I.t;
+  var tf = I.tf;
 
   var TOTAL_STEPS = 6;
   var draft = null;
   var currentStep = 1;
 
-  var GRADE_OPTIONS = [
-    { id: "grade_9_10", title: "9–10 класс", icon: "📘" },
-    { id: "grade_11", title: "11 класс", icon: "🎓" },
-    { id: "graduated", title: "Уже закончил(а) школу", icon: "🧑‍🎓" },
-    { id: "transfer", title: "Хочу перевестись", icon: "🔄" }
-  ];
+  function GRADE_OPTIONS() {
+    return [
+      { id: "grade_9_10", title: t("profile.grade9_10"), icon: "📘" },
+      { id: "grade_11", title: t("profile.grade11"), icon: "🎓" },
+      { id: "graduated", title: t("profile.graduated"), icon: "🧑‍🎓" },
+      { id: "transfer", title: t("profile.transfer"), icon: "🔄" }
+    ];
+  }
 
   // step2 (специальность) — внутренний режим мини-квиза
   var step2Mode = "grid"; // grid | quiz | result
@@ -60,14 +65,14 @@
   // ---------------- Progress / nav ----------------
   function updateProgress() {
     qs("#wizard-fill").style.width = Math.round((currentStep / TOTAL_STEPS) * 100) + "%";
-    qs("#wizard-label").textContent = "Шаг " + currentStep + " из " + TOTAL_STEPS;
+    qs("#wizard-label").textContent = t("profile.stepLabel") + " " + currentStep + " " + t("profile.of") + " " + TOTAL_STEPS;
   }
 
   function updateNavButtons() {
     var back = qs("#btn-back");
     var next = qs("#btn-next");
-    back.textContent = currentStep === 1 ? "На главную" : "Назад";
-    next.textContent = currentStep === TOTAL_STEPS ? "Готово" : "Далее";
+    back.textContent = currentStep === 1 ? t("profile.toHome") : t("profile.back");
+    next.textContent = currentStep === TOTAL_STEPS ? t("profile.done") : t("profile.next");
   }
 
   function goBack() {
@@ -88,9 +93,9 @@
 
   // ---------------- Step 1 — класс ----------------
   function renderStep1(container) {
-    heading(container, "Шаг 1 из 6", "На каком ты сейчас этапе?", "Это поможет понять, сколько времени есть на подготовку.");
+    heading(container, t("profile.step1Eyebrow"), t("profile.step1Title"), t("profile.step1Subtitle"));
     optionGrid(
-      container, GRADE_OPTIONS,
+      container, GRADE_OPTIONS(),
       function (opt) { return draft.gradeLevel === opt.id; },
       function (opt) { draft.gradeLevel = opt.id; persist(); render(); }
     );
@@ -112,8 +117,8 @@
       var selected = draft.majors.indexOf(m.id) !== -1;
       var card = el("button", { type: "button", class: "option-card" + (selected ? " option-card--selected" : "") }, [
         el("div", { class: "option-card__icon" }, [m.icon]),
-        el("div", { class: "option-card__title" }, [m.label]),
-        el("div", { class: "option-card__sub" }, [m.sub])
+        el("div", { class: "option-card__title" }, [tf(m.label)]),
+        el("div", { class: "option-card__sub" }, [tf(m.sub)])
       ]);
       card.addEventListener("click", function () {
         var idx = draft.majors.indexOf(m.id);
@@ -125,18 +130,18 @@
       grid.appendChild(card);
     });
     mount.appendChild(grid);
-    mount.appendChild(el("p", { class: "muted", style: "margin-top:12px;" }, ["Можно выбрать несколько — мы уточним приоритеты позже."]));
+    mount.appendChild(el("p", { class: "muted", style: "margin-top:12px;" }, [t("profile.majorsHint")]));
 
-    var dontKnow = el("button", { type: "button", class: "btn btn--ghost btn--sm", style: "margin-top:8px;" }, ["❓ Ещё не знаю — пройти мини-квиз"]);
+    var dontKnow = el("button", { type: "button", class: "btn btn--ghost btn--sm", style: "margin-top:8px;" }, [t("profile.dontKnowQuiz")]);
     dontKnow.addEventListener("click", function () { step2Mode = "quiz"; quizIndex = 0; quizAnswers = {}; refreshStep2(); });
     mount.appendChild(dontKnow);
   }
 
   function renderQuizQuestion(mount) {
     var q = D.CAREER_QUIZ[quizIndex];
-    mount.appendChild(el("p", { class: "muted", style: "margin-bottom:4px;" }, ["Вопрос " + (quizIndex + 1) + " из " + D.CAREER_QUIZ.length]));
-    mount.appendChild(el("h3", { style: "margin-bottom:16px;" }, [q.question]));
-    var options = q.options.map(function (o, i) { return { idx: i, title: o.text, major: o.major }; });
+    mount.appendChild(el("p", { class: "muted", style: "margin-bottom:4px;" }, [t("profile.quizQuestionOf") + " " + (quizIndex + 1) + " " + t("profile.quizOf") + " " + D.CAREER_QUIZ.length]));
+    mount.appendChild(el("h3", { style: "margin-bottom:16px;" }, [tf(q.question)]));
+    var options = q.options.map(function (o, i) { return { idx: i, title: tf(o.text), major: o.major }; });
     optionGrid(mount, options, function () { return false; }, function (opt) {
       quizAnswers[q.id] = opt.major;
       quizIndex++;
@@ -144,17 +149,18 @@
       refreshStep2();
     });
     mount.appendChild(
-      el("button", { type: "button", class: "btn btn--ghost btn--sm", style: "margin-top:16px;", onclick: function () { step2Mode = "grid"; refreshStep2(); } }, ["← Вернуться к списку специальностей"])
+      el("button", { type: "button", class: "btn btn--ghost btn--sm", style: "margin-top:16px;", onclick: function () { step2Mode = "grid"; refreshStep2(); } }, [t("profile.backToMajors")])
     );
   }
 
   function renderQuizResult(mount) {
     var result = M.scoreCareerQuiz(quizAnswers);
     var major = C.getMajor(result.major);
+    var majorLabel = major ? tf(major.label) : "—";
     mount.appendChild(el("div", { class: "card", style: "text-align:center;" }, [
       el("div", { style: "font-size:2rem;margin-bottom:8px;" }, [major ? major.icon : "🎯"]),
-      el("h3", {}, ["Похоже, это направление: " + (major ? major.label : "—")]),
-      el("p", {}, ["Судя по ответам («" + result.chosenLabels.slice(0, 3).join("», «") + "»…), это направление ближе всего — подсказка, а не итоговое решение."]),
+      el("h3", {}, [t("profile.quizResultTitle") + " " + majorLabel]),
+      el("p", {}, [t("profile.quizResultText", { answers: result.chosenLabels.slice(0, 3).join("», «") })]),
       el("div", { class: "flex gap-1", style: "justify-content:center;flex-wrap:wrap;" }, [
         el("button", {
           type: "button", class: "btn btn--primary",
@@ -162,15 +168,15 @@
             if (draft.majors.indexOf(result.major) === -1) draft.majors.push(result.major);
             draft.majorsFromQuiz = true; persist(); step2Mode = "grid"; refreshStep2();
           }
-        }, ["Добавить «" + (major ? major.label : "—") + "»"]),
-        el("button", { type: "button", class: "btn btn--secondary", onclick: function () { step2Mode = "grid"; refreshStep2(); } }, ["Выбрать вручную"]),
-        el("button", { type: "button", class: "btn btn--ghost", onclick: function () { quizIndex = 0; quizAnswers = {}; step2Mode = "quiz"; refreshStep2(); } }, ["Пройти заново"])
+        }, [t("profile.quizAdd", { major: majorLabel })]),
+        el("button", { type: "button", class: "btn btn--secondary", onclick: function () { step2Mode = "grid"; refreshStep2(); } }, [t("profile.quizManual")]),
+        el("button", { type: "button", class: "btn btn--ghost", onclick: function () { quizIndex = 0; quizAnswers = {}; step2Mode = "quiz"; refreshStep2(); } }, [t("profile.quizRetry")])
       ])
     ]));
   }
 
   function renderStep2(container) {
-    heading(container, "Шаг 2 из 6", "Какое направление тебе ближе?", "Не уверен(а)? Пройди мини-квиз из 5 вопросов — это подсказка, а не окончательное решение.");
+    heading(container, t("profile.step2Eyebrow"), t("profile.step2Title"), t("profile.step2Subtitle"));
     var mount = el("div", { id: "step2-mount" });
     container.appendChild(mount);
     refreshStep2();
@@ -178,8 +184,8 @@
 
   // ---------------- Step 3 — страны ----------------
   function renderStep3(container) {
-    heading(container, "Шаг 3 из 6", "В какие страны рассматриваешь поступление?", "Можно выбрать несколько — рекомендации пересчитаются под них.");
-    var options = D.COUNTRIES.map(function (c) { return { id: c.id, title: c.flag + " " + c.label }; });
+    heading(container, t("profile.step3Eyebrow"), t("profile.step3Title"), t("profile.step3Subtitle"));
+    var options = D.COUNTRIES.map(function (c) { return { id: c.id, title: c.flag + " " + tf(c.label) }; });
     var grid = el("div", { id: "country-grid" });
     container.appendChild(grid);
 
@@ -201,7 +207,7 @@
     renderGrid();
 
     var toggleWrap = el("div", { class: "toggle-row", style: "margin-top:16px;" }, [
-      el("span", {}, ["Показать вузы по всем странам"]),
+      el("span", {}, [t("profile.showAllCountries")]),
       el("label", { class: "switch" }, [
         el("input", { type: "checkbox", checked: draft.showAllCountries ? "checked" : null, onchange: function (e) { draft.showAllCountries = e.target.checked; persist(); renderGrid(); } }),
         el("span", { class: "switch__track" })
@@ -210,7 +216,7 @@
     container.appendChild(toggleWrap);
 
     container.appendChild(
-      el("a", { href: "country-guide.html", class: "btn btn--ghost btn--sm", style: "margin-top:16px;display:inline-flex;" }, ["Ещё не решили? Сравнить страны →"])
+      el("a", { href: "country-guide.html", class: "btn btn--ghost btn--sm", style: "margin-top:16px;display:inline-flex;" }, [t("profile.compareCountries")])
     );
   }
 
@@ -218,10 +224,10 @@
   function sectionMeta(key) {
     if (key === "sport") {
       var sportCount = draft.achievements.sport.practices.length;
-      return sportCount ? sportCount + " вид(а)" : "Не указано";
+      return sportCount ? sportCount + " " + t("profile.sportKindsCount") : t("profile.notSpecified");
     }
     var n = (draft.achievements[key] || []).length;
-    return n ? n + " запис(ей)" : "Не указано";
+    return n ? n + " " + t("profile.recordsCount") : t("profile.notSpecified");
   }
 
   function updateMeta(key) {
@@ -258,7 +264,7 @@
       var inputB = el("input", { class: "text-input", type: "text", placeholder: opts.placeholderB, value: record.result || "" });
       inputA.addEventListener("input", function () { record.topic = inputA.value; persist(); });
       inputB.addEventListener("input", function () { record.result = inputB.value; persist(); });
-      var del = el("button", { type: "button", class: "icon-btn", title: "Удалить" }, ["✕"]);
+      var del = el("button", { type: "button", class: "icon-btn", title: t("profile.delete") }, ["✕"]);
       del.addEventListener("click", function () {
         var arr = opts.getList();
         var idx = arr.indexOf(record);
@@ -273,7 +279,7 @@
 
     opts.getList().forEach(addRow);
 
-    var addBtn = el("button", { type: "button", class: "btn btn--secondary btn--sm" }, ["+ Добавить запись"]);
+    var addBtn = el("button", { type: "button", class: "btn btn--secondary btn--sm" }, [t("profile.addRecord")]);
     addBtn.addEventListener("click", function () {
       var record = { topic: "", result: "" };
       opts.getList().push(record);
@@ -284,17 +290,18 @@
     body.appendChild(addBtn);
   }
 
+  // options: массив {id, label:{ru,en}}. getArray() хранит выбранные id.
   function chipToggleGroup(container, options, getArray, onChange) {
     var group = el("div", { class: "chip-group" });
-    options.forEach(function (label) {
+    options.forEach(function (opt) {
       var chip = el("button", {
         type: "button",
-        class: "chip" + (getArray().indexOf(label) !== -1 ? " chip--selected" : "")
-      }, [label]);
+        class: "chip" + (getArray().indexOf(opt.id) !== -1 ? " chip--selected" : "")
+      }, [tf(opt.label)]);
       chip.addEventListener("click", function () {
         var arr = getArray();
-        var idx = arr.indexOf(label);
-        if (idx >= 0) arr.splice(idx, 1); else arr.push(label);
+        var idx = arr.indexOf(opt.id);
+        if (idx >= 0) arr.splice(idx, 1); else arr.push(opt.id);
         chip.classList.toggle("chip--selected");
         onChange();
       });
@@ -305,30 +312,32 @@
 
   // ---- Спорт: виды спорта чипами (мультивыбор) + уровень достижения ----
   function renderSportCategory(root, cat) {
-    var body = makeAccordionSection(root, cat.key, cat.label);
-    if (cat.note) body.appendChild(el("div", { class: "field-hint", style: "margin-bottom:10px;" }, [cat.note]));
+    var body = makeAccordionSection(root, cat.key, tf(cat.label));
+    if (cat.note) body.appendChild(el("div", { class: "field-hint", style: "margin-bottom:10px;" }, [tf(cat.note)]));
 
-    body.appendChild(el("div", { class: "field-label" }, ["Виды спорта"]));
+    body.appendChild(el("div", { class: "field-label" }, [t("profile.sportTypes")]));
     chipToggleGroup(body, D.SPORTS, function () { return draft.achievements.sport.practices; }, function () {
       persist();
       updateMeta("sport");
     });
 
-    body.appendChild(el("div", { class: "field-label", style: "margin-top:14px;" }, ["Уровень достижения"]));
+    body.appendChild(el("div", { class: "field-label", style: "margin-top:14px;" }, [t("profile.sportLevel")]));
     var select = el("select", { class: "text-input" });
-    select.appendChild(el("option", { value: "" }, ["Не выбрано"]));
+    select.appendChild(el("option", { value: "" }, [t("profile.notChosen")]));
     D.SPORT_LEVELS.forEach(function (lvl) {
-      select.appendChild(el("option", { value: lvl.id, selected: draft.achievements.sport.level === lvl.id ? "selected" : null }, [lvl.label]));
+      select.appendChild(el("option", { value: lvl.id, selected: draft.achievements.sport.level === lvl.id ? "selected" : null }, [tf(lvl.label)]));
     });
     select.addEventListener("change", function () { draft.achievements.sport.level = select.value || null; persist(); });
     body.appendChild(select);
   }
 
   // ---- Волонтёрство: список записей (где / сфера / часы / результат) ----
+  // record.sphere хранит id сферы (см. D.VOLUNTEER_SPHERES), не текст метки —
+  // так переключение языка не ломает уже выбранную сферу.
   function renderVolunteeringRecords(body, opts) {
     var list = el("div", { class: "record-list" });
     body.appendChild(list);
-    var emptyMsg = el("p", { class: "muted", style: "margin:0 0 10px;" }, ["Пока не добавлено ни одного пункта."]);
+    var emptyMsg = el("p", { class: "muted", style: "margin:0 0 10px;" }, [t("profile.noEntriesYet")]);
 
     function refreshEmptyState() {
       if (opts.getList().length === 0) {
@@ -340,33 +349,33 @@
 
     function addRow(record) {
       var card = el("div", { class: "record-card" });
-      var del = el("button", { type: "button", class: "icon-btn", title: "Удалить" }, ["✕"]);
+      var del = el("button", { type: "button", class: "icon-btn", title: t("profile.delete") }, ["✕"]);
       card.appendChild(el("div", { class: "record-card__top" }, [
-        el("span", { class: "record-card__title" }, ["Место волонтёрства"]),
+        el("span", { class: "record-card__title" }, [t("profile.volunteerPlaceTitle")]),
         del
       ]));
 
-      var placeInput = el("input", { class: "text-input", type: "text", placeholder: "Где — например, «Приют для животных «Дружок»»", value: record.place || "" });
+      var placeInput = el("input", { class: "text-input", type: "text", placeholder: t("profile.volunteerPlacePlaceholder"), value: record.place || "" });
       placeInput.addEventListener("input", function () { record.place = placeInput.value; persist(); });
       card.appendChild(el("div", { class: "record-card__row" }, [placeInput]));
 
-      card.appendChild(el("div", { class: "record-card__label" }, ["Сфера"]));
+      card.appendChild(el("div", { class: "record-card__label" }, [t("profile.volunteerSphere")]));
       var sphereGroup = el("div", { class: "chip-group" });
-      D.VOLUNTEER_SPHERES.forEach(function (label) {
-        var chip = el("button", { type: "button", class: "chip" + (record.sphere === label ? " chip--selected" : "") }, [label]);
+      D.VOLUNTEER_SPHERES.forEach(function (sphere) {
+        var chip = el("button", { type: "button", class: "chip" + (record.sphere === sphere.id ? " chip--selected" : "") }, [tf(sphere.label)]);
         chip.addEventListener("click", function () {
-          record.sphere = record.sphere === label ? null : label;
+          record.sphere = record.sphere === sphere.id ? null : sphere.id;
           Array.prototype.forEach.call(sphereGroup.children, function (c) { c.classList.remove("chip--selected"); });
-          if (record.sphere === label) chip.classList.add("chip--selected");
+          if (record.sphere === sphere.id) chip.classList.add("chip--selected");
           persist();
         });
         sphereGroup.appendChild(chip);
       });
       card.appendChild(sphereGroup);
 
-      var hoursInput = el("input", { class: "text-input", type: "number", min: "0", placeholder: "Часов (необязательно)", value: record.hours || "" });
+      var hoursInput = el("input", { class: "text-input", type: "number", min: "0", placeholder: t("profile.volunteerHours"), value: record.hours || "" });
       hoursInput.addEventListener("input", function () { record.hours = hoursInput.value ? Number(hoursInput.value) : null; persist(); });
-      var descInput = el("input", { class: "text-input", type: "text", placeholder: "Результат / что делал(а) (необязательно)", value: record.description || "" });
+      var descInput = el("input", { class: "text-input", type: "text", placeholder: t("profile.volunteerResult"), value: record.description || "" });
       descInput.addEventListener("input", function () { record.description = descInput.value; persist(); });
       card.appendChild(el("div", { class: "record-card__row", style: "margin-top:10px;" }, [hoursInput, descInput]));
 
@@ -386,7 +395,7 @@
     opts.getList().forEach(addRow);
     refreshEmptyState();
 
-    var addBtn = el("button", { type: "button", class: "btn btn--secondary btn--sm" }, ["+ Добавить запись"]);
+    var addBtn = el("button", { type: "button", class: "btn btn--secondary btn--sm" }, [t("profile.addRecord")]);
     addBtn.addEventListener("click", function () {
       var record = { place: "", sphere: null, hours: null, description: "" };
       opts.getList().push(record);
@@ -401,12 +410,12 @@
   function renderTip(body, tip) {
     var open = false;
     var content = el("div", { class: "field-hint", style: "margin-top:8px;display:none;" }, [
-      el("div", {}, [tip.intro]),
-      el("ul", { style: "margin:6px 0 0;padding-left:18px;" }, tip.items.map(function (item) {
+      el("div", {}, [tf(tip.intro)]),
+      el("ul", { style: "margin:6px 0 0;padding-left:18px;" }, tf(tip.items).map(function (item) {
         return el("li", { style: "margin-bottom:4px;" }, [item]);
       }))
     ]);
-    var toggle = el("button", { type: "button", class: "btn btn--ghost btn--sm", style: "margin-top:8px;" }, ["💡 " + tip.title]);
+    var toggle = el("button", { type: "button", class: "btn btn--ghost btn--sm", style: "margin-top:8px;" }, ["💡 " + tf(tip.title)]);
     toggle.addEventListener("click", function () {
       open = !open;
       content.style.display = open ? "block" : "none";
@@ -422,8 +431,8 @@
       return;
     }
     if (cat.variant === "volunteering") {
-      var vBody = makeAccordionSection(root, cat.key, cat.label);
-      if (cat.note) vBody.appendChild(el("div", { class: "field-hint", style: "margin-bottom:10px;" }, [cat.note]));
+      var vBody = makeAccordionSection(root, cat.key, tf(cat.label));
+      if (cat.note) vBody.appendChild(el("div", { class: "field-hint", style: "margin-bottom:10px;" }, [tf(cat.note)]));
       renderVolunteeringRecords(vBody, {
         getList: function () { return draft.achievements[cat.key]; },
         onChange: function () { updateMeta(cat.key); }
@@ -431,12 +440,12 @@
       if (isFirst) qs("#acc-" + cat.key).classList.add("accordion-section--open");
       return;
     }
-    var body = makeAccordionSection(root, cat.key, cat.label);
-    if (cat.note) body.appendChild(el("div", { class: "field-hint", style: "margin-bottom:10px;" }, [cat.note]));
+    var body = makeAccordionSection(root, cat.key, tf(cat.label));
+    if (cat.note) body.appendChild(el("div", { class: "field-hint", style: "margin-bottom:10px;" }, [tf(cat.note)]));
     renderRecordCategory(body, {
       getList: function () { return draft.achievements[cat.key]; },
-      placeholderA: cat.placeholderA,
-      placeholderB: cat.placeholderB,
+      placeholderA: tf(cat.placeholderA),
+      placeholderB: tf(cat.placeholderB),
       onChange: function () { updateMeta(cat.key); }
     });
     if (cat.tip) renderTip(body, cat.tip);
@@ -444,7 +453,7 @@
   }
 
   function renderStep4(container) {
-    heading(container, "Шаг 4 из 6", "Расскажи о своих достижениях", "Это усилит эссе и поможет подобрать вузы с грантами для сильных абитуриентов. Всё опционально.");
+    heading(container, t("profile.step4Eyebrow"), t("profile.step4Title"), t("profile.step4Subtitle"));
     var root = el("div", { id: "accordion-root" });
     container.appendChild(root);
 
@@ -452,7 +461,7 @@
       renderAchievementCategory(root, cat, i === 0);
     });
 
-    container.appendChild(el("div", { class: "field-label", style: "margin-top:20px;" }, ["Дополнительно"]));
+    container.appendChild(el("div", { class: "field-label", style: "margin-top:20px;" }, [t("profile.additional")]));
     renderAchievementCategory(container, D.CUSTOM_ACHIEVEMENT_CATEGORY, false);
   }
 
@@ -468,12 +477,12 @@
     var wrap = el("div", { class: "slider-field" });
 
     var valueLabel = el("span", { class: "slider-field__value" + (state.notTaken || state.value === null ? " slider-field__value--muted" : "") }, [
-      state.notTaken ? "Не сдавал(а)" : formatExamValue(opts.decimals, state.value)
+      state.notTaken ? t("profile.notTaken") : formatExamValue(opts.decimals, state.value)
     ]);
 
     var notTakenCheckbox;
     var toggleInline = el("div", { class: "toggle-inline" }, [
-      el("span", { class: "muted" }, ["Ещё не сдавал(а)"]),
+      el("span", { class: "muted" }, [t("profile.notTakenYet")]),
       el("label", { class: "switch" }, [
         (notTakenCheckbox = el("input", { type: "checkbox", checked: state.notTaken ? "checked" : null })),
         el("span", { class: "switch__track" })
@@ -497,7 +506,7 @@
       persist();
     });
     wrap.appendChild(slider);
-    wrap.appendChild(el("div", { class: "field-hint" }, ["Максимум: " + opts.maxText]));
+    wrap.appendChild(el("div", { class: "field-hint" }, [t("profile.maximum") + " " + opts.maxText]));
     if (opts.info) wrap.appendChild(el("div", { class: "field-hint" }, [opts.info]));
     if (opts.extraNote) wrap.appendChild(el("div", { class: "field-hint" }, [opts.extraNote]));
 
@@ -507,7 +516,7 @@
       opts.setValue(checked ? null : (current.value !== null ? current.value : opts.min), checked);
       slider.disabled = checked;
       if (checked) {
-        valueLabel.textContent = "Не сдавал(а)";
+        valueLabel.textContent = t("profile.notTaken");
         valueLabel.classList.add("slider-field__value--muted");
       } else {
         var v = opts.getState().value;
@@ -522,33 +531,33 @@
   }
 
   function renderStep5(container) {
-    heading(container, "Шаг 5 из 6", "Отметь свои баллы", "Двигай ползунки — мы сразу покажем, для каких вузов этого достаточно, а где стоит подтянуться. Если экзамен ещё не сдавал(а) — просто отметь тумблер, он не будет учтён как 0.");
+    heading(container, t("profile.step5Eyebrow"), t("profile.step5Title"), t("profile.step5Subtitle"));
 
     buildSliderField(container, {
-      label: "IELTS Academic", min: 0, max: 9, step: 0.5, decimals: 1, maxText: "9.0",
-      info: "Международный экзамен по английскому языку.",
+      label: t("profile.ieltsLabel"), min: 0, max: 9, step: 0.5, decimals: 1, maxText: "9.0",
+      info: t("profile.ieltsInfo"),
       getState: function () { return draft.exams.ielts; },
       setValue: function (v, notTaken) { draft.exams.ielts.value = v; draft.exams.ielts.notTaken = notTaken; }
     });
 
     buildSliderField(container, {
-      label: "TOEFL iBT", min: 0, max: 120, step: 1, decimals: 0, maxText: "120",
-      info: "Альтернатива IELTS — тоже международный экзамен по английскому языку, шкала другая.",
+      label: t("profile.toeflLabel"), min: 0, max: 120, step: 1, decimals: 0, maxText: "120",
+      info: t("profile.toeflInfo"),
       getState: function () { return draft.exams.toefl; },
       setValue: function (v, notTaken) { draft.exams.toefl.value = v; draft.exams.toefl.notTaken = notTaken; }
     });
 
     buildSliderField(container, {
-      label: "SAT", min: 400, max: 1600, step: 10, decimals: 0, maxText: "1600",
-      info: "Стандартизированный тест для поступления в вузы США (и ряда других стран).",
+      label: t("profile.satLabel"), min: 400, max: 1600, step: 10, decimals: 0, maxText: "1600",
+      info: t("profile.satInfo"),
       getState: function () { return draft.exams.sat; },
       setValue: function (v, notTaken) { draft.exams.sat.value = v; draft.exams.sat.notTaken = notTaken; }
     });
 
     buildSliderField(container, {
-      label: "Средний балл аттестата (GPA)", min: 0, max: 5, step: 0.1, decimals: 1, maxText: "5.0",
-      info: "Средний балл школьного аттестата по 5-балльной шкале.",
-      extraNote: "Это ориентир, а не универсальный стандарт — разные вузы переводят GPA по-разному.",
+      label: t("profile.gpaLabel"), min: 0, max: 5, step: 0.1, decimals: 1, maxText: "5.0",
+      info: t("profile.gpaInfo"),
+      extraNote: t("profile.gpaExtraNote"),
       getState: function () { return draft.exams.gpa; },
       setValue: function (v, notTaken) { draft.exams.gpa.value = v; draft.exams.gpa.notTaken = notTaken; }
     });
@@ -556,19 +565,19 @@
 
   // ---------------- Step 6 — сводка ----------------
   function renderStep6(container) {
-    heading(container, "Шаг 6 из 6", "Проверь и подтверди", "Клик по любому пункту — сразу к нужному шагу.");
+    heading(container, t("profile.step6Eyebrow"), t("profile.step6Title"), t("profile.step6Subtitle"));
     var grid = el("div", { class: "summary-grid" });
 
-    var gradeOpt = GRADE_OPTIONS.filter(function (g) { return g.id === draft.gradeLevel; })[0];
+    var gradeOpt = GRADE_OPTIONS().filter(function (g) { return g.id === draft.gradeLevel; })[0];
     var achCount = C.totalAchievementCount(draft.achievements, D.ACHIEVEMENT_CATEGORIES, D.CUSTOM_ACHIEVEMENT_CATEGORY.key);
     var exSummary = M.examsTakenSummary(draft);
 
     var rows = [
-      { step: 1, title: "Этап обучения", value: gradeOpt ? gradeOpt.title : "Не указано" },
-      { step: 2, title: "Специальность", value: draft.majors.length ? C.majorsLabel(draft.majors) + (draft.majorsFromQuiz ? " (по квизу)" : "") : "Не указано" },
-      { step: 3, title: "Страны", value: draft.showAllCountries ? "Все страны" : (draft.countries.length ? draft.countries.map(C.countryLabel).join(", ") : "Не указано") },
-      { step: 4, title: "Достижения", value: achCount ? achCount + " запис(ей)" : "Не указано" },
-      { step: 5, title: "Экзамены", value: exSummary.count + " из " + exSummary.total + " сдано" }
+      { step: 1, title: t("profile.gradeLevelTitle"), value: gradeOpt ? gradeOpt.title : t("profile.notSpecified") },
+      { step: 2, title: t("profile.majorTitle"), value: draft.majors.length ? C.majorsLabel(draft.majors) + (draft.majorsFromQuiz ? " " + t("profile.byQuiz") : "") : t("profile.notSpecified") },
+      { step: 3, title: t("profile.countriesTitle"), value: draft.showAllCountries ? t("common.allCountries") : (draft.countries.length ? draft.countries.map(C.countryLabel).join(", ") : t("profile.notSpecified")) },
+      { step: 4, title: t("profile.achievementsTitle"), value: achCount ? achCount + " " + t("profile.recordsCount") : t("profile.notSpecified") },
+      { step: 5, title: t("profile.examsTitle"), value: exSummary.count + " " + t("profile.examsTaken", { total: exSummary.total }) }
     ];
 
     rows.forEach(function (row) {

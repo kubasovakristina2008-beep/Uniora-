@@ -6,8 +6,10 @@
   var S = global.Uniora.state;
   var M = global.Uniora.match;
   var D = global.Uniora.data;
+  var I = global.Uniora.i18n;
   var el = C.el;
   var qs = C.qs;
+  var t = I.t;
   var renderUniCard = global.Uniora.recommendations.renderUniCard;
 
   function render() {
@@ -18,9 +20,9 @@
     if (!ids.length) {
       C.emptyState(root, {
         icon: "♡",
-        title: "Пока нет избранных вузов",
-        text: "На странице рекомендаций нажмите ♡ на карточке вуза, чтобы сохранить его здесь.",
-        actionLabel: "К рекомендациям",
+        title: t("favorites.emptyTitle"),
+        text: t("favorites.emptyText"),
+        actionLabel: t("favorites.toRecommendations"),
         actionHref: "recommendations.html"
       });
       return;
@@ -40,7 +42,7 @@
     root.appendChild(grid);
     if (missing) {
       root.appendChild(el("p", { class: "muted", style: "margin-top:var(--space-2);" }, [
-        "Часть сохранённых вузов не найдена в текущей базе (" + missing + ") — они были удалены из списка автоматически."
+        t("favorites.missingNote", { count: missing })
       ]));
     }
   }

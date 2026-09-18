@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Избранное — Uniora</title>
+<title data-i18n="favorites.title">Избранное — Uniora</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -16,14 +16,15 @@
 <section class="page-section">
   <div class="container">
     <div class="section-heading">
-      <span class="eyebrow">Избранное</span>
-      <h2>Сохранённые вузы</h2>
-      <p>Оценка «почему подходит» пересчитывается по текущему профилю — если вы изменили специальность или страны в анкете, факты обновятся автоматически.</p>
+      <span class="eyebrow" data-i18n="favorites.eyebrow">Избранное</span>
+      <h2 data-i18n="favorites.heading">Сохранённые вузы</h2>
+      <p data-i18n="favorites.subheading">Оценка «почему подходит» пересчитывается по текущему профилю — если вы изменили специальность или страны в анкете, факты обновятся автоматически.</p>
     </div>
     <div id="favorites-root"></div>
   </div>
 </section>
 
+<script src="js/i18n.js"></script>
 <script src="js/data.js"></script>
 <script src="js/state.js"></script>
 <script src="js/match.js"></script>

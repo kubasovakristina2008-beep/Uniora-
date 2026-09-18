@@ -6,16 +6,19 @@
   var S = global.Uniora.state;
   var M = global.Uniora.match;
   var D = global.Uniora.data;
+  var I = global.Uniora.i18n;
   var el = C.el;
   var qs = C.qs;
+  var t = I.t;
+  var tf = I.tf;
 
   var CATEGORY_ORDER = ["match", "reach", "safety"];
   var CATEGORY_LABEL = { match: "Match", reach: "Reach", safety: "Safety" };
-  var CATEGORY_HINT = {
-    match: "Реалистичные варианты: ваши данные близки к требованиям вуза.",
-    reach: "Амбициозные варианты: конкурс высокий или порог пока не достигнут.",
-    safety: "Более доступные варианты: высокий приём и запас по вашим данным."
-  };
+  function categoryHint(cat) {
+    if (cat === "match") return t("recommendations.categoryHintMatch");
+    if (cat === "reach") return t("recommendations.categoryHintReach");
+    return t("recommendations.categoryHintSafety");
+  }
 
   function renderFilterBar() {
     var mount = qs("#filter-bar");
@@ -25,7 +28,7 @@
 
     D.MAJORS.forEach(function (m) {
       var selected = profile.majors.indexOf(m.id) !== -1;
-      var chip = el("button", { type: "button", class: "chip" + (selected ? " chip--selected" : "") }, [m.icon + " " + m.label]);
+      var chip = el("button", { type: "button", class: "chip" + (selected ? " chip--selected" : "") }, [m.icon + " " + tf(m.label)]);
       chip.addEventListener("click", function () {
         var list = profile.majors.slice();
         var idx = list.indexOf(m.id);
@@ -44,7 +47,7 @@
         type: "button",
         class: "chip" + (selected && !profile.showAllCountries ? " chip--selected" : ""),
         style: profile.showAllCountries ? "opacity:0.5;" : ""
-      }, [c.flag + " " + c.label]);
+      }, [c.flag + " " + tf(c.label)]);
       chip.addEventListener("click", function () {
         if (profile.showAllCountries) return;
         var list = profile.countries.slice();
@@ -56,11 +59,11 @@
       bar.appendChild(chip);
     });
 
-    var allChip = el("button", { type: "button", class: "chip" + (profile.showAllCountries ? " chip--selected" : "") }, ["🌍 Все страны"]);
+    var allChip = el("button", { type: "button", class: "chip" + (profile.showAllCountries ? " chip--selected" : "") }, [t("recommendations.allCountriesChip")]);
     allChip.addEventListener("click", function () { S.updateProfile({ showAllCountries: !profile.showAllCountries }); render(); });
     bar.appendChild(allChip);
 
-    bar.appendChild(el("a", { class: "btn btn--ghost btn--sm", href: "profile.html?step=5" }, ["Изменить экзамены"]));
+    bar.appendChild(el("a", { class: "btn btn--ghost btn--sm", href: "profile.html?step=5" }, [t("recommendations.changeExams")]));
 
     mount.appendChild(bar);
   }
@@ -86,56 +89,56 @@
     });
 
     var deadlineParts = [];
-    if (uni.deadlineEarly) deadlineParts.push("Ранняя: " + uni.deadlineEarly);
-    deadlineParts.push("Основная: " + uni.deadlineMain);
+    if (uni.deadlineEarly) deadlineParts.push(t("recommendations.early") + " " + tf(uni.deadlineEarly));
+    deadlineParts.push(t("recommendations.main") + " " + tf(uni.deadlineMain));
 
     var card = el("div", { class: "card uni-card" }, [
       el("div", { class: "uni-card__top" }, [
         el("div", {}, [
-          el("div", { class: "uni-card__name" }, [uni.name, isTarget ? el("span", { class: "badge badge--target" }, ["🎯 Цель"]) : null]),
-          el("div", { class: "uni-card__place" }, [C.countryFlag(uni.country) + " " + uni.city + ", " + C.countryLabel(uni.country)])
+          el("div", { class: "uni-card__name" }, [uni.name, isTarget ? el("span", { class: "badge badge--target" }, [t("recommendations.target")]) : null]),
+          el("div", { class: "uni-card__place" }, [C.countryFlag(uni.country) + " " + tf(uni.city) + ", " + C.countryLabel(uni.country)])
         ]),
         el("div", { class: "flex-col", style: "align-items:flex-end;gap:4px;" }, [
           el("span", { class: "badge badge--" + match.category }, [CATEGORY_LABEL[match.category]]),
-          el("span", { class: "match-percent" }, [match.matchPercent + "% совпадение"])
+          el("span", { class: "match-percent" }, [match.matchPercent + t("recommendations.matchPercentSuffix")])
         ])
       ]),
       el("div", { class: "uni-card__facts" }, factRows),
       el("div", { class: "uni-card__facts", style: "border-top:1px solid rgba(20,22,43,0.06);padding-top:8px;" }, [
-        el("div", {}, ["📅 " + deadlineParts.join(" · ") + " (данные прошлого цикла подачи, уточняйте на сайте)"]),
-        el("div", {}, ["🏆 Рейтинг: #" + uni.rankingCountry + " в стране, #" + uni.rankingWorld + " в мире (ориентировочно)"]),
-        el("div", {}, ["🎓 Стипендия: " + uni.scholarship]),
-        el("div", {}, ["🏠 Общежитие: " + uni.dormitory]),
-        uni.comment ? el("div", { class: "muted" }, ["ⓘ " + uni.comment]) : null
+        el("div", {}, ["📅 " + deadlineParts.join(" · ") + " " + t("recommendations.deadlineNote")]),
+        el("div", {}, ["🏆 " + t("recommendations.ranking", { country: uni.rankingCountry, world: uni.rankingWorld })]),
+        el("div", {}, ["🎓 " + t("recommendations.scholarship") + " " + (uni.scholarship ? tf(uni.scholarship) : t("compare.noData"))]),
+        el("div", {}, ["🏠 " + t("recommendations.dormitory") + " " + tf(uni.dormitory)]),
+        uni.comment ? el("div", { class: "muted" }, ["ⓘ " + tf(uni.comment)]) : null
       ]),
       el("div", { class: "uni-card__actions" }, [
         (function () {
-          var btn = el("button", { type: "button", class: "btn " + (inCompare ? "btn--primary" : "btn--secondary") }, [inCompare ? "В сравнении ✓" : "В сравнение"]);
+          var btn = el("button", { type: "button", class: "btn " + (inCompare ? "btn--primary" : "btn--secondary") }, [inCompare ? t("recommendations.inCompareYes") : t("recommendations.inCompareNo")]);
           btn.addEventListener("click", function () {
             var res = S.toggleCompare(uni.id);
-            if (!res.ok && res.reason === "max") { C.toast("Можно сравнить максимум 3 вуза — уберите один, чтобы добавить другой."); return; }
-            C.toast(res.list.indexOf(uni.id) !== -1 ? "Добавлено в сравнение" : "Убрано из сравнения");
+            if (!res.ok && res.reason === "max") { C.toast(t("recommendations.compareMax")); return; }
+            C.toast(res.list.indexOf(uni.id) !== -1 ? t("recommendations.addedToCompare") : t("recommendations.removedFromCompare"));
             onChange();
           });
           return btn;
         })(),
         opts.favoritesContext
           ? (function () {
-              var favBtn = el("button", { type: "button", class: "btn btn--sm btn--secondary" }, ["♥ Убрать из избранного"]);
-              favBtn.addEventListener("click", function () { S.toggleFavorite(uni.id); C.toast("Убрано из избранного"); onChange(); });
+              var favBtn = el("button", { type: "button", class: "btn btn--sm btn--secondary" }, [t("recommendations.removeFromFavorites")]);
+              favBtn.addEventListener("click", function () { S.toggleFavorite(uni.id); C.toast(t("recommendations.removedFromFavorites")); onChange(); });
               return favBtn;
             })()
           : (function () {
-              var favBtn = el("button", { type: "button", class: "fav-btn" + (isFav ? " fav-btn--active" : ""), title: "В избранное" }, [isFav ? "♥" : "♡"]);
+              var favBtn = el("button", { type: "button", class: "fav-btn" + (isFav ? " fav-btn--active" : ""), title: t("recommendations.addToFavorites") }, [isFav ? "♥" : "♡"]);
               favBtn.addEventListener("click", function () { S.toggleFavorite(uni.id); onChange(); });
               return favBtn;
             })(),
-        el("a", { class: "btn btn--ghost", href: uni.website, target: "_blank", rel: "noopener" }, ["Сайт"]),
+        el("a", { class: "btn btn--ghost", href: uni.website, target: "_blank", rel: "noopener" }, [t("recommendations.site")]),
         (function () {
-          var targetBtn = el("button", { type: "button", class: "btn btn--sm " + (isTarget ? "btn--primary" : "btn--secondary") }, [isTarget ? "🎯 Цель" : "Сделать целью"]);
+          var targetBtn = el("button", { type: "button", class: "btn btn--sm " + (isTarget ? "btn--primary" : "btn--secondary") }, [isTarget ? t("recommendations.target") : t("recommendations.makeTarget")]);
           targetBtn.addEventListener("click", function () {
             S.updateProfile({ targetUniversityId: isTarget ? null : uni.id });
-            C.toast(isTarget ? "Цель снята" : "Roadmap теперь ведёт к этому вузу");
+            C.toast(isTarget ? t("recommendations.targetRemoved") : t("recommendations.targetSet"));
             onChange();
           });
           return targetBtn;
@@ -152,13 +155,6 @@
     { key: "toefl", label: "TOEFL", min: 0, max: 120, step: 1, decimals: 0, fallback: 80 },
     { key: "sat", label: "SAT", min: 400, max: 1600, step: 10, decimals: 0, fallback: 1000 }
   ];
-
-  function pluralUni(n) {
-    var mod10 = n % 10, mod100 = n % 100;
-    if (mod10 === 1 && mod100 !== 11) return "вуз";
-    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return "вуза";
-    return "вузов";
-  }
 
   function renderWhatIf() {
     var mount = qs("#whatif-bar");
@@ -188,7 +184,7 @@
 
       resultBox.innerHTML = "";
       if (!after.length) {
-        resultBox.appendChild(el("p", { class: "muted", style: "margin:8px 0 0;" }, ["Пока нет подобранных вузов для сравнения — уточните фильтры выше."]));
+        resultBox.appendChild(el("p", { class: "muted", style: "margin:8px 0 0;" }, [t("recommendations.whatIfNoUnis")]));
         return;
       }
       var labelMap = { match: "Match", reach: "Reach", safety: "Safety" };
@@ -202,7 +198,7 @@
       });
 
       if (!changes.length) {
-        resultBox.appendChild(el("p", { class: "muted", style: "margin:8px 0 0;" }, ["При этом значении категории вузов в вашей подборке не меняются."]));
+        resultBox.appendChild(el("p", { class: "muted", style: "margin:8px 0 0;" }, [t("recommendations.whatIfNoChange")]));
         return;
       }
 
@@ -218,11 +214,11 @@
       order.forEach(function (key) {
         var g = groups[key];
         var n = g.names.length;
-        var verb = n === 1 ? "переходит" : "переходят";
+        var verb = n === 1 ? t("recommendations.moveTo") : t("recommendations.moveToPlural");
         list.appendChild(
           el("div", { class: "whatif-row-item" }, [
             el("span", { class: "whatif-row-item__change" }, [
-              n + " " + pluralUni(n) + " " + verb + " из " + labelMap[g.from] + " в " + labelMap[g.to]
+              n + " " + I.uniWord(n) + " " + verb + " " + t("recommendations.uniFrom") + " " + labelMap[g.from] + " " + t("recommendations.uniTo") + " " + labelMap[g.to]
             ]),
             el("span", { class: "whatif-row-item__names" }, [g.names.join(", ")])
           ])
@@ -246,11 +242,11 @@
     });
 
     var card = el("div", { class: "card whatif-card" }, [
-      el("div", { class: "field-label" }, ["Симулятор «Что если» — подвинь баллы IELTS/TOEFL/SAT"]),
-      el("p", { class: "muted", style: "margin-top:-6px;" }, ["Не сохраняет значения в профиль — только показывает, как изменились бы категории вузов в вашей подборке."]),
+      el("div", { class: "field-label" }, [t("recommendations.whatIfTitle")]),
+      el("p", { class: "muted", style: "margin-top:-6px;" }, [t("recommendations.whatIfSubtitle")]),
       sliders,
       resultBox,
-      el("p", { class: "muted", style: "margin-top:10px;font-size:0.78rem;" }, ["Это предварительный пересчёт по нашей собственной логике подбора, а не гарантия результата поступления."])
+      el("p", { class: "muted", style: "margin-top:10px;font-size:0.78rem;" }, [t("recommendations.whatIfDisclaimer")])
     ]);
     mount.appendChild(card);
     recompute();
@@ -266,9 +262,9 @@
     if (!profile.majors.length) {
       C.emptyState(root, {
         icon: "🎯",
-        title: "Сначала выберите специальность",
-        text: "Рекомендации строятся от специальности и страны — вернитесь в профиль, чтобы их указать.",
-        actionLabel: "К профилю",
+        title: t("recommendations.emptyMajorTitle"),
+        text: t("recommendations.emptyMajorText"),
+        actionLabel: t("recommendations.toProfile"),
         actionHref: "profile.html"
       });
       return;
@@ -276,9 +272,9 @@
     if (!profile.showAllCountries && profile.countries.length === 0) {
       C.emptyState(root, {
         icon: "🌍",
-        title: "Выберите хотя бы одну страну",
-        text: "Или включите «Все страны» в фильтрах выше, чтобы увидеть вузы без ограничения по стране.",
-        actionLabel: "К профилю",
+        title: t("recommendations.emptyCountryTitle"),
+        text: t("recommendations.emptyCountryText"),
+        actionLabel: t("recommendations.toProfile"),
         actionHref: "profile.html"
       });
       return;
@@ -288,11 +284,11 @@
     if (matches.length === 0) {
       var block = el("div", { class: "empty-state" }, [
         el("div", { class: "empty-state__icon" }, ["🔍"]),
-        el("h3", {}, ["Пока нет точных совпадений"]),
-        el("p", {}, ["Попробуйте изменить страну или специальность в фильтрах выше."]),
+        el("h3", {}, [t("recommendations.noMatchesTitle")]),
+        el("p", {}, [t("recommendations.noMatchesText")]),
         el("div", { class: "flex gap-1", style: "justify-content:center;flex-wrap:wrap;" }, [
-          el("a", { class: "btn btn--primary", href: "profile.html?step=3" }, ["Изменить страны"]),
-          el("a", { class: "btn btn--secondary", href: "profile.html?step=2" }, ["Изменить специальность"])
+          el("a", { class: "btn btn--primary", href: "profile.html?step=3" }, [t("recommendations.changeCountries")]),
+          el("a", { class: "btn btn--secondary", href: "profile.html?step=2" }, [t("recommendations.changeMajor")])
         ])
       ]);
       root.appendChild(block);
@@ -305,8 +301,8 @@
       root.appendChild(
         el("div", { class: "card", style: "margin-bottom:20px;border-color:var(--aurora-violet);" }, [
           el("div", { class: "flex items-center justify-between gap-2", style: "flex-wrap:wrap;" }, [
-            el("p", { style: "margin:0;" }, ["Профиль заполнен по минимуму — с экзаменами и достижениями объяснения «почему подходит» станут заметно точнее."]),
-            el("a", { class: "btn btn--secondary btn--sm", href: "profile.html?step=4" }, ["Дополнить профиль"])
+            el("p", { style: "margin:0;" }, [t("recommendations.minimalProfileBanner")]),
+            el("a", { class: "btn btn--secondary btn--sm", href: "profile.html?step=4" }, [t("recommendations.completeProfile")])
           ])
         ])
       );
@@ -316,7 +312,7 @@
     matches.forEach(function (m) { byCategory[m.category].push(m); });
     CATEGORY_ORDER.forEach(function (cat) { byCategory[cat].sort(function (a, b) { return b.matchPercent - a.matchPercent; }); });
 
-    root.appendChild(el("h3", {}, ["Твоя карта вузов"]));
+    root.appendChild(el("h3", {}, [t("recommendations.mapTitle")]));
     var countsRow = el("div", { class: "flex gap-2", style: "margin-bottom:16px;flex-wrap:wrap;" }, CATEGORY_ORDER.map(function (cat) {
       return el("span", { class: "badge badge--" + cat }, [byCategory[cat].length + " " + CATEGORY_LABEL[cat]]);
     }));
@@ -327,11 +323,11 @@
       root.appendChild(
         el("div", { class: "flex items-center gap-1", style: "margin:28px 0 6px;" }, [
           el("span", { class: "badge badge--" + cat }, [CATEGORY_LABEL[cat]]),
-          el("span", { class: "muted", style: "font-size:0.85rem;" }, [CATEGORY_HINT[cat]])
+          el("span", { class: "muted", style: "font-size:0.85rem;" }, [categoryHint(cat)])
         ])
       );
       if (list.length === 0) {
-        root.appendChild(el("div", { class: "category-note" }, ["Нет вузов в категории " + CATEGORY_LABEL[cat] + " среди выбранных стран — попробуйте добавить ещё одну страну."]));
+        root.appendChild(el("div", { class: "category-note" }, [t("recommendations.noneInCategory", { cat: CATEGORY_LABEL[cat] })]));
         return;
       }
       var grid = el("div", { class: "uni-grid" });
@@ -341,8 +337,8 @@
 
     root.appendChild(
       el("div", { class: "step-actions", style: "margin-top:32px;" }, [
-        el("a", { class: "btn btn--secondary", href: "diagnosis.html" }, ["← К диагностике"]),
-        el("a", { class: "btn btn--primary", href: "compare.html" }, ["Перейти к сравнению"])
+        el("a", { class: "btn btn--secondary", href: "diagnosis.html" }, [t("recommendations.toDiagnosis")]),
+        el("a", { class: "btn btn--primary", href: "compare.html" }, [t("recommendations.toCompare")])
       ])
     );
   }
