@@ -596,7 +596,18 @@
 
   function init() {
     draft = clone(S.getProfile());
+    // Защита от устаревшей формы данных в localStorage (старые версии
+    // схемы) — если поле неожиданной формы, не даём странице упасть.
     if (Array.isArray(draft.achievements.sport)) draft.achievements.sport = { practices: [], level: null };
+    if (!draft.achievements.sport || !Array.isArray(draft.achievements.sport.practices)) {
+      draft.achievements.sport = { practices: [], level: (draft.achievements.sport && draft.achievements.sport.level) || null };
+    }
+    D.ACHIEVEMENT_CATEGORIES.filter(function (c) { return c.variant !== "sport"; })
+      .map(function (c) { return c.key; })
+      .concat([D.CUSTOM_ACHIEVEMENT_CATEGORY.key])
+      .forEach(function (key) {
+        if (!Array.isArray(draft.achievements[key])) draft.achievements[key] = [];
+      });
     currentStep = 1;
     var params = new URLSearchParams(window.location.search);
     var stepParam = parseInt(params.get("step"), 10);
