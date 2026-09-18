@@ -227,8 +227,6 @@
       title2: { ru: "Твой портрет абитуриента", en: "Your applicant portrait" },
       subtitle: { ru: "Специальность: {majors} · Страны: {countries}", en: "Major: {majors} · Countries: {countries}" },
       allCountries: { ru: "все страны", en: "all countries" },
-      readinessLabel: { ru: "Готовность к поступлению", en: "Admission readiness" },
-      readinessNote: { ru: "Эвристика Uniora на основе заполненности анкеты — не официальный балл и не гарантия результата.", en: "A Uniora heuristic based on how much of your profile is filled in — not an official score or a guarantee of the outcome." },
       constellationTitle: { ru: "Созвездие твоих сильных и слабых сторон", en: "Your constellation of strengths and gaps" },
       noData: { ru: "нет данных", en: "no data" },
       strengths: { ru: "Сильные стороны", en: "Strengths" },

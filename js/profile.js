@@ -185,7 +185,7 @@
   // ---------------- Step 3 — страны ----------------
   function renderStep3(container) {
     heading(container, t("profile.step3Eyebrow"), t("profile.step3Title"), t("profile.step3Subtitle"));
-    var options = D.COUNTRIES.map(function (c) { return { id: c.id, title: c.flag + " " + tf(c.label) }; });
+    var options = D.COUNTRIES.map(function (c) { return { id: c.id, title: tf(c.label) + " " + c.flag }; });
     var grid = el("div", { id: "country-grid" });
     container.appendChild(grid);
 

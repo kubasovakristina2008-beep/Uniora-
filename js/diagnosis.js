@@ -43,7 +43,6 @@
     }
 
     var categories = M.readinessCategories(profile);
-    var overall = M.readinessOverall(categories);
     var sw = M.readinessStrengthsWeaknesses(categories);
     var exSummary = M.examsTakenSummary(profile);
 
@@ -57,15 +56,6 @@
             countries: profile.showAllCountries ? t("diagnosis.allCountries") : profile.countries.map(C.countryLabel).join(", ")
           })
         ])
-      ])
-    );
-
-    // Общая готовность
-    root.appendChild(
-      el("div", { class: "card", style: "margin-bottom:var(--space-3);" }, [
-        el("div", { class: "stat-card__label" }, [t("diagnosis.readinessLabel")]),
-        el("div", { class: "stat-card__value", style: "font-size:2rem;" }, [overall + "%"]),
-        el("div", { class: "stat-card__note" }, [t("diagnosis.readinessNote")])
       ])
     );
 

@@ -47,7 +47,7 @@
         type: "button",
         class: "chip" + (selected && !profile.showAllCountries ? " chip--selected" : ""),
         style: profile.showAllCountries ? "opacity:0.5;" : ""
-      }, [c.flag + " " + tf(c.label)]);
+      }, [tf(c.label) + " " + c.flag]);
       chip.addEventListener("click", function () {
         if (profile.showAllCountries) return;
         var list = profile.countries.slice();
@@ -96,7 +96,7 @@
       el("div", { class: "uni-card__top" }, [
         el("div", {}, [
           el("div", { class: "uni-card__name" }, [uni.name, isTarget ? el("span", { class: "badge badge--target" }, [t("recommendations.target")]) : null]),
-          el("div", { class: "uni-card__place" }, [C.countryFlag(uni.country) + " " + tf(uni.city) + ", " + C.countryLabel(uni.country)])
+          el("div", { class: "uni-card__place" }, [tf(uni.city) + ", " + C.countryLabel(uni.country) + " " + C.countryFlag(uni.country)])
         ]),
         el("div", { class: "flex-col", style: "align-items:flex-end;gap:4px;" }, [
           el("span", { class: "badge badge--" + match.category }, [CATEGORY_LABEL[match.category]]),

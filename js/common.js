@@ -124,7 +124,7 @@
       chips.appendChild(el("span", { class: "chip chip--static" }, [t("common.allCountries")]));
     } else if (profile.countries && profile.countries.length) {
       profile.countries.forEach(function (c) {
-        chips.appendChild(el("span", { class: "chip chip--static" }, [countryFlag(c) + " " + countryLabel(c)]));
+        chips.appendChild(el("span", { class: "chip chip--static" }, [countryLabel(c) + " " + countryFlag(c)]));
       });
     }
 

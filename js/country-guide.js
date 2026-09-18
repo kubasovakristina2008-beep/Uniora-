@@ -24,7 +24,7 @@
 
     var tabs = el("div", { class: "priority-tabs" });
     D.COUNTRIES.forEach(function (c) {
-      var tab = el("button", { type: "button", class: "priority-tab" + (c.id === activeCountry ? " priority-tab--active" : "") }, [c.flag + " " + tf(c.label)]);
+      var tab = el("button", { type: "button", class: "priority-tab" + (c.id === activeCountry ? " priority-tab--active" : "") }, [tf(c.label) + " " + c.flag]);
       tab.addEventListener("click", function () { activeCountry = c.id; render(); });
       tabs.appendChild(tab);
     });
